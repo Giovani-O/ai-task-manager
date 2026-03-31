@@ -33,6 +33,11 @@
     }
   },
   "files": {
-    "includes": ["**", "!**/routeTree.gen.ts"]
+    "includes": [
+      "**",
+      "!**/routeTree.gen.ts",
+      "!**/dist/**/",
+      "!**/components/ui/**/*.tsx"
+    ]
   }
 }
