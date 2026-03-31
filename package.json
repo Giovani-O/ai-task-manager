@@ -1,0 +1,16 @@
+{
+  "name": "ai-task-manager",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "lint": "biome lint ./client/src ./api/src",
+    "format": "biome format --write ./client/src ./api/src",
+    "check": "biome check --write ./client/src ./api/src"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.9"
+  }
+}
