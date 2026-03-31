@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as LayoutUsersRouteImport } from './routes/_layout/users'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -21,24 +22,32 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutUsersRoute = LayoutUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/users': typeof LayoutUsersRoute
 }
 export interface FileRoutesByTo {
+  '/users': typeof LayoutUsersRoute
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
+  '/_layout/users': typeof LayoutUsersRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/_layout' | '/_layout/'
+  to: '/users' | '/'
+  id: '__root__' | '/_layout' | '/_layout/users' | '/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -61,14 +70,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/users': {
+      id: '/_layout/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof LayoutUsersRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
 interface LayoutRouteChildren {
+  LayoutUsersRoute: typeof LayoutUsersRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
+  LayoutUsersRoute: LayoutUsersRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }
 
