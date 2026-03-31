@@ -8,10 +8,10 @@ Agent instructions for this monorepo. Read before making any changes.
 
 ```
 ai-task-manager/
-├── api/        # Fastify 5 backend (Node 22, ESM, TypeScript)
-├── client/     # Vite + React 19 frontend (TanStack Router + Query, shadcn/ui)
-├── biome.json  # Root Biome config (authoritative for all workspaces)
-└── docs/       # PRD, SDD, plans, specs
+├── api/           # Fastify 5 backend (Node 22, ESM, TypeScript)
+├── client/        # Vite + React 19 frontend (TanStack Router + Query, shadcn/ui)
+├── biome.json     # Root Biome config (authoritative for all workspaces)
+└── docs/          # PRD, SDD, plans, specs
 ```
 
 Package manager: **pnpm** exclusively. Never use `npm` or `yarn`.
@@ -23,19 +23,19 @@ Package manager: **pnpm** exclusively. Never use `npm` or `yarn`.
 ### Root (run from repo root)
 
 ```bash
-pnpm install            # Install all workspace dependencies
-pnpm check              # Biome lint + format check across client/src and api/src
-pnpm format             # Auto-fix formatting across both workspaces
-pnpm lint               # Lint only (no format write)
+pnpm install         # Install all workspace dependencies
+pnpm check           # Biome lint + format check across client/src and api/src
+pnpm format          # Auto-fix formatting across both workspaces
+pnpm lint            # Lint only (no format write)
 ```
 
 ### API
 
 ```bash
-pnpm --filter api dev           # Start dev server (port 3333, tsx watch)
-pnpm --filter api build         # Compile TypeScript to dist/
-pnpm --filter api test          # Run all tests once
-pnpm --filter api test:watch    # Run tests in watch mode
+pnpm --filter api dev        # Start dev server (port 3333, tsx watch)
+pnpm --filter api build      # Compile TypeScript to dist/
+pnpm --filter api test       # Run all tests once
+pnpm --filter api test:watch # Run tests in watch mode
 
 # Run a single test file
 pnpm --filter api exec vitest run src/path/to/file.test.ts
@@ -44,9 +44,9 @@ pnpm --filter api exec vitest run src/path/to/file.test.ts
 pnpm --filter api exec vitest run -t "pattern"
 
 # Database
-pnpm --filter api db:generate   # Generate Drizzle migrations
-pnpm --filter api db:migrate    # Apply migrations
-pnpm --filter api db:studio     # Open Drizzle Studio
+pnpm --filter api db:generate  # Generate Drizzle migrations
+pnpm --filter api db:migrate   # Apply migrations
+pnpm --filter api db:studio    # Open Drizzle Studio
 ```
 
 ### Client
@@ -81,7 +81,6 @@ cp api/.env.example api/.env
 Required vars (`api/.env`):
 - `DATABASE_URL` — PostgreSQL connection string
 - `GEMINI_API_KEY` — Google Gemini API key (AI features)
-- `CLIENT_URL` — CORS origin (defaults to `http://localhost:5173`)
 
 Client env (`client/.env`):
 - `VITE_API_URL` — API base URL (defaults to `http://localhost:3333`)
@@ -134,6 +133,12 @@ Use inline `type` modifier when `verbatimModuleSyntax` is active (client):
 import { type ClassValue, clsx } from 'clsx'
 ```
 
+For type-only imports from React, use `import type * as React`:
+
+```ts
+import type * as React from 'react'
+```
+
 ### Naming Conventions
 
 | Thing | Convention | Example |
@@ -158,9 +163,23 @@ import { type ClassValue, clsx } from 'clsx'
 ```ts
 // Route plugin pattern
 import type { FastifyPluginAsync } from 'fastify'
+import { z } from 'zod'
+
+const taskSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+})
 
 const tasksRoute: FastifyPluginAsync = async (app) => {
-  app.get('/tasks', { schema: { response: { 200: taskListSchema } } }, handler)
+  app.get('/tasks', {
+    schema: {
+      response: {
+        200: z.array(taskSchema),
+      },
+    },
+  }, async () => {
+    return [{ id: '1', title: 'Example' }]
+  })
 }
 
 export default tasksRoute
@@ -182,9 +201,46 @@ function Button({ active }: { active: boolean }) {
 }
 ```
 
+- Component props: Use inline type definitions for simple cases:
+
+```tsx
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border p-4">
+      <h2>{title}</h2>
+      {children}
+    </div>
+  )
+}
+```
+
 - Add shadcn components via CLI (run from `client/`):
-  ```bash
-  pnpm dlx shadcn@latest add <component>
+```bash
+pnpm dlx shadcn@latest add <component>
+```
+
+### Error Handling
+
+- **API:** Use Fastify's built-in error handling. Throw `FastifyError` or use
+  `app.httpErrors` for HTTP error responses:
+  ```ts
+  import { FastifyError } from 'fastify'
+
+  if (!task) {
+    throw app.httpErrors.notFound('Task not found')
+  }
+  ```
+
+- **Client:** Use TanStack Query's `onError` callback or error boundaries for
+  runtime errors. Toast notifications via `sonner` for user-facing errors:
+  ```tsx
+  import { toast } from 'sonner'
+
+  // In mutation
+  useMutation({
+    mutationFn: createTask,
+    onError: (error) => toast.error(error.message),
+  })
   ```
 
 ### Testing
@@ -207,7 +263,9 @@ function Button({ active }: { active: boolean }) {
 | `api/docker-compose.yml` | PostgreSQL 17 container |
 | `client/src/main.tsx` | React app entry, router + query setup |
 | `client/src/routes/__root.tsx` | Root route layout |
+| `client/src/routes/_layout.tsx` | Layout route with sidebar |
 | `client/src/lib/utils.ts` | `cn()` class merging utility |
 | `client/src/index.css` | Tailwind v4 config + design tokens |
+| `client/vitest.config.ts` | Vitest configuration |
 | `docs/core/PRD.md` | Product requirements |
 | `docs/core/SDD.md` | System design document |
