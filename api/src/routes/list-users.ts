@@ -3,7 +3,7 @@ import { createSelectSchema } from 'drizzle-zod'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { db } from '@/db'
-import { users } from '@/db/schema'
+import { users } from '@/db/schema/schema'
 
 // Listagem com paginação infinita (baseada em cursor)
 

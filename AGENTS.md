@@ -156,33 +156,43 @@ import type * as React from 'react'
 
 - Use `fastify-type-provider-zod` for all route schemas — define `schema.body`,
   `schema.response`, etc. with Zod objects
-- Always register `validatorCompiler` and `serializerCompiler` (already in `index.ts`)
+- Use `FastifyPluginAsyncZod` type for route plugins
+- Always register `validatorCompiler` and `serializerCompiler` (already in `server.ts`)
 - Organise routes as plugins in `src/routes/` (one file per domain)
-- DB access via Drizzle in `src/db/` — schema in `src/db/schema.ts`
+- DB access via Drizzle in `src/db/` — schema in `src/db/schema/schema.ts`
+- API docs available at `/docs` via `@scalar/fastify-api-reference`
 
 ```ts
-// Route plugin pattern
-import type { FastifyPluginAsync } from 'fastify'
+import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
+import { createSelectSchema } from 'drizzle-zod'
+import { db } from '@/db'
+import { tasks } from '@/db/schema/schema'
 
-const taskSchema = z.object({
-  id: z.string(),
-  title: z.string(),
-})
-
-const tasksRoute: FastifyPluginAsync = async (app) => {
+export const listTasks: FastifyPluginAsyncZod = async (app) => {
   app.get('/tasks', {
     schema: {
+      summary: 'List tasks',
+      tags: ['task'],
+      querystring: z.object({
+        page: z.coerce.number().min(1).default(1),
+        pageSize: z.coerce.number().default(20),
+      }),
       response: {
-        200: z.array(taskSchema),
+        200: z.object({
+          tasks: z.array(createSelectSchema(tasks)),
+          page: z.number(),
+          pageSize: z.number(),
+        }),
       },
     },
-  }, async () => {
-    return [{ id: '1', title: 'Example' }]
+  }, async (request, reply) => {
+    const { page, pageSize } = request.query
+    const offset = (page - 1) * pageSize
+    const result = await db.select().from(tasks).limit(pageSize).offset(offset)
+    return reply.send({ tasks: result, page, pageSize })
   })
 }
-
-export default tasksRoute
 ```
 
 ### Client (React)
@@ -257,8 +267,8 @@ pnpm dlx shadcn@latest add <component>
 
 | Path | Purpose |
 |------|---------|
-| `api/src/index.ts` | Fastify app entry point |
-| `api/src/db/schema.ts` | Drizzle ORM table definitions |
+| `api/src/server.ts` | Fastify app entry point |
+| `api/src/db/schema/schema.ts` | Drizzle ORM table definitions |
 | `api/drizzle.config.ts` | Drizzle Kit configuration |
 | `api/docker-compose.yml` | PostgreSQL 17 container |
 | `client/src/main.tsx` | React app entry, router + query setup |

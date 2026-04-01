@@ -7,7 +7,6 @@ const envSchema = z.object({
   PORT: z.coerce.number().default(3333),
 
   DATABASE_URL: z.string(),
-  TEST_DATABASE_URL: z.string(),
   GEMINI_API_KEY: z.string(),
 })
 
