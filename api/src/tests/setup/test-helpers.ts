@@ -1,36 +1,34 @@
 import path from 'node:path'
 import { fastifyCors } from '@fastify/cors'
-import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import { migrate } from 'drizzle-orm/postgres-js/migrator'
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
+import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { fastify } from 'fastify'
 import {
   serializerCompiler,
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import postgres from 'postgres'
+import pg from 'pg'
 import { uuidv7 } from 'uuidv7'
+import * as schema from '@/db/schema'
 import { users } from '@/db/schema'
 import { env } from '@/env'
 import { listUsers } from '@/routes/list-users'
-
-type TestDbType = PostgresJsDatabase<Record<string, never>> & {
-  $client: postgres.Sql<{}>
-}
 
 // Setup do server de testes
 export async function buildApp() {
   const connectionString = env.DATABASE_URL || ''
 
-  // Create test DB
-  const testDb = drizzle(postgres(connectionString))
-
   // Run migrations (ensure DB is ready for this specific test suite)
-  const migrationClient = postgres(connectionString, { max: 1 })
+  const migrationClient = new pg.Pool({ connectionString })
   await migrate(drizzle(migrationClient), {
     migrationsFolder: path.join(process.cwd(), 'drizzle'),
   })
   await migrationClient.end()
+
+  // Create test DB
+  const pool = new pg.Pool({ connectionString })
+  const testDb = drizzle(pool, { schema, casing: 'snake_case' })
 
   const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -46,13 +44,13 @@ export async function buildApp() {
 }
 
 // Limpa banco de testes
-export async function cleanDb(db: TestDbType) {
+export async function cleanDb(db: NodePgDatabase<typeof schema>) {
   await db.delete(users)
 }
 
 // Insere user de teste
 export async function insertUser(
-  db: TestDbType,
+  db: NodePgDatabase<typeof schema>,
   overrides: Partial<typeof users.$inferInsert> = {},
 ) {
   const defaults = {

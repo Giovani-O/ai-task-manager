@@ -9,12 +9,14 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
+import { db } from './db'
 import { listUsers } from './routes/list-users'
 
-const app = Fastify().withTypeProvider<ZodTypeProvider>()
+const app = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>()
 
 app.setValidatorCompiler(validatorCompiler)
 app.setSerializerCompiler(serializerCompiler)
+app.decorate('db', db)
 
 await app.register(fastifyCors, {
   origin: true,

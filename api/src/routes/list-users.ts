@@ -2,7 +2,6 @@ import { desc } from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-zod'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { db } from '@/db'
 import { users } from '@/db/schema'
 
 export const listUsers: FastifyPluginAsyncZod = async (app) => {
@@ -36,7 +35,7 @@ export const listUsers: FastifyPluginAsyncZod = async (app) => {
       const { page, pageSize } = request.query
       const offset = (page - 1) * pageSize
 
-      const result = await db
+      const result = await app.db
         .select({
           id: users.id,
           name: users.name,
