@@ -1,13 +1,12 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
   Pagination,
   PaginationContent,
-  PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
@@ -28,68 +27,41 @@ export type User = {
   lastLogin: string | null
 }
 
+const PAGE_SIZE = 20
+
+async function fetchUsers(page: number, pageSize: number) {
+  const url = new URL(`${import.meta.env.VITE_API_URL}/users`)
+  url.searchParams.set('page', String(page))
+  url.searchParams.set('pageSize', String(pageSize))
+
+  const response = await fetch(url.toString(), {
+    headers: { 'Content-Type': 'application/json' },
+  })
+  if (!response.ok) {
+    throw new Error('Failed to fetch users')
+  }
+  return response.json() as Promise<{
+    users: User[]
+    page: number
+    pageSize: number
+  }>
+}
+
 export const Route = createFileRoute('/_layout/users')({
-  component: function RouteComponent() {
-    const { users } = Route.useLoaderData()
-    return <UsersPage users={users} />
-  },
-  loader: async () => {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/users`, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    if (!response.ok) {
-      throw new Error('Failed to fetch users')
-    }
-    return response.json() as Promise<{
-      users: User[]
-      page: number
-      pageSize: number
-    }>
-  },
+  component: UsersPage,
 })
 
-export function UsersPage({ users }: { users: User[] }) {
-  const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 10
-  const totalPages = Math.ceil(users.length / pageSize)
-  const startIndex = (currentPage - 1) * pageSize
-  const paginatedUsers = users.slice(startIndex, startIndex + pageSize)
+export function UsersPage() {
+  const [page, setPage] = useState(1)
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
+  const { data, isLoading } = useQuery({
+    queryKey: ['users', page],
+    queryFn: () => fetchUsers(page, PAGE_SIZE),
+  })
 
-  const getVisiblePages = (): (
-    | number
-    | 'left-ellipsis'
-    | 'right-ellipsis'
-  )[] => {
-    const pages: (number | 'left-ellipsis' | 'right-ellipsis')[] = []
-    if (totalPages <= 5) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i)
-      }
-    } else {
-      pages.push(1)
-      if (currentPage > 3) {
-        pages.push('left-ellipsis')
-      }
-      const start = Math.max(2, currentPage - 1)
-      const end = Math.min(totalPages - 1, currentPage + 1)
-      for (let i = start; i <= end; i++) {
-        pages.push(i)
-      }
-      if (currentPage < totalPages - 2) {
-        pages.push('right-ellipsis')
-      }
-      if (totalPages > 1) {
-        pages.push(totalPages)
-      }
-    }
-    return pages
-  }
+  const users = data?.users ?? []
+  const isFirstPage = page === 1
+  const hasNextPage = users.length === PAGE_SIZE
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:p-6">
@@ -103,14 +75,20 @@ export function UsersPage({ users }: { users: User[] }) {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {paginatedUsers.length === 0 ? (
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={3} className="h-24 text-center">
+                  Loading…
+                </TableCell>
+              </TableRow>
+            ) : users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="h-24 text-center">
                   No users found.
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedUsers.map((user) => (
+              users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
@@ -125,15 +103,15 @@ export function UsersPage({ users }: { users: User[] }) {
           </TableBody>
         </Table>
       </div>
-      {totalPages > 1 && (
+      {(!isFirstPage || hasNextPage) && (
         <Pagination>
           <PaginationContent>
             <PaginationItem>
               <PaginationPrevious
-                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                aria-disabled={currentPage === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-disabled={isFirstPage}
                 className={
-                  currentPage === 1
+                  isFirstPage
                     ? 'pointer-events-none opacity-50'
                     : 'cursor-pointer'
                 }
@@ -141,31 +119,12 @@ export function UsersPage({ users }: { users: User[] }) {
                 <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
               </PaginationPrevious>
             </PaginationItem>
-            {getVisiblePages().map((page) =>
-              page === 'left-ellipsis' || page === 'right-ellipsis' ? (
-                <PaginationItem key={page}>
-                  <PaginationEllipsis />
-                </PaginationItem>
-              ) : (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    onClick={() => handlePageChange(page)}
-                    isActive={currentPage === page}
-                    className="cursor-pointer"
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              ),
-            )}
             <PaginationItem>
               <PaginationNext
-                onClick={() =>
-                  handlePageChange(Math.min(totalPages, currentPage + 1))
-                }
-                aria-disabled={currentPage === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+                aria-disabled={!hasNextPage}
                 className={
-                  currentPage === totalPages
+                  !hasNextPage
                     ? 'pointer-events-none opacity-50'
                     : 'cursor-pointer'
                 }

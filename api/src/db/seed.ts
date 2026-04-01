@@ -25,8 +25,8 @@ async function seed() {
   console.log('Truncating users table...')
   await client.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE')
 
-  console.log('Seeding 20 users...')
-  for (let i = 0; i < 20; i++) {
+  console.log('Seeding 30 users...')
+  for (let i = 0; i < 30; i++) {
     const id = uuidv7()
     const email = faker.internet.email()
     const name = faker.person.fullName()
