@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table'
 import { formatDateTime } from '@/lib/format-date'
 
-type User = {
+export type User = {
   id: string
   name: string
   email: string
@@ -29,7 +29,10 @@ type User = {
 }
 
 export const Route = createFileRoute('/_layout/users')({
-  component: RouteComponent,
+  component: function RouteComponent() {
+    const { users } = Route.useLoaderData()
+    return <UsersPage users={users} />
+  },
   loader: async () => {
     const response = await fetch(`${import.meta.env.VITE_API_URL}/users`, {
       headers: {
@@ -47,8 +50,7 @@ export const Route = createFileRoute('/_layout/users')({
   },
 })
 
-function RouteComponent() {
-  const { users } = Route.useLoaderData()
+export function UsersPage({ users }: { users: User[] }) {
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 10
   const totalPages = Math.ceil(users.length / pageSize)
@@ -91,7 +93,6 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:p-6">
-      <h1 className="text-2xl font-semibold">Users</h1>
       <div className="rounded-lg border">
         <Table>
           <TableHeader>

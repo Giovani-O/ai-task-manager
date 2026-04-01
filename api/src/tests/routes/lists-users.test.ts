@@ -68,4 +68,62 @@ describe('GET /users', () => {
     expect(res.statusCode).toBe(200)
     expect(users[0].lastLogin).toBeNull()
   })
+
+  it('returns correct pagination metadata', async () => {
+    const res = await helper.app.inject({ method: 'GET', url: '/users' })
+    const body = res.json()
+    expect(body.page).toBe(1)
+    expect(body.pageSize).toBe(20)
+  })
+
+  it('respects custom pageSize parameter', async () => {
+    for (let i = 0; i < 5; i++) {
+      await insertUser(helper.testDb, { id: uuidv7(), email: `u${i}@test.me` })
+    }
+
+    const res = await helper.app.inject({
+      method: 'GET',
+      url: '/users?pageSize=2',
+    })
+    const body = res.json()
+    expect(body.users).toHaveLength(2)
+    expect(body.page).toBe(1)
+    expect(body.pageSize).toBe(2)
+  })
+
+  it('paginates through results correctly', async () => {
+    for (let i = 0; i < 5; i++) {
+      await insertUser(helper.testDb, { id: uuidv7(), email: `u${i}@test.me` })
+    }
+
+    const page1 = await helper.app.inject({
+      method: 'GET',
+      url: '/users?page=1&pageSize=2',
+    })
+    const page2 = await helper.app.inject({
+      method: 'GET',
+      url: '/users?page=2&pageSize=2',
+    })
+
+    expect(page1.json().users).toHaveLength(2)
+    expect(page1.json().page).toBe(1)
+    expect(page2.json().users).toHaveLength(2)
+    expect(page2.json().page).toBe(2)
+
+    const page1Ids = page1.json().users.map((u: { id: string }) => u.id)
+    const page2Ids = page2.json().users.map((u: { id: string }) => u.id)
+    expect(page1Ids).not.toEqual(expect.arrayContaining(page2Ids))
+  })
+
+  it('returns empty array when page exceeds total pages', async () => {
+    await insertUser(helper.testDb, { id: uuidv7(), email: 'single@test.me' })
+
+    const res = await helper.app.inject({
+      method: 'GET',
+      url: '/users?page=99&pageSize=20',
+    })
+    const body = res.json()
+    expect(body.users).toHaveLength(0)
+    expect(body.page).toBe(99)
+  })
 })

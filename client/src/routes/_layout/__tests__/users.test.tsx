@@ -1,187 +1,214 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
+import { formatDateTime } from '@/lib/format-date'
+import { type User, UsersPage } from '../users'
 
-const mockUsers = [
-  {
+// ---------------------------------------------------------------------------
+// Fixtures
+// ---------------------------------------------------------------------------
+
+function makeUser(overrides: Partial<User> & { id: string }): User {
+  return {
+    name: `User ${overrides.id}`,
+    email: `user${overrides.id}@example.com`,
+    lastLogin: null,
+    ...overrides,
+  }
+}
+
+/** 3 users — fits on one page, no pagination */
+const fewUsers: User[] = [
+  makeUser({
     id: '1',
     name: 'John Doe',
     email: 'john@example.com',
     lastLogin: '2026-04-01T10:30:00Z',
-  },
-  { id: '2', name: 'Jane Smith', email: 'jane@example.com', lastLogin: null },
-  {
+  }),
+  makeUser({
+    id: '2',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    lastLogin: null,
+  }),
+  makeUser({
     id: '3',
     name: 'Bob Wilson',
     email: 'bob@example.com',
     lastLogin: '2026-03-15T08:00:00Z',
-  },
-  {
-    id: '4',
-    name: 'Alice Brown',
-    email: 'alice@example.com',
-    lastLogin: '2026-02-20T14:45:00Z',
-  },
-  {
-    id: '5',
-    name: 'Charlie Davis',
-    email: 'charlie@example.com',
-    lastLogin: null,
-  },
-  {
-    id: '6',
-    name: 'Diana Evans',
-    email: 'diana@example.com',
-    lastLogin: '2026-01-10T09:15:00Z',
-  },
-  {
-    id: '7',
-    name: 'Frank Garcia',
-    email: 'frank@example.com',
-    lastLogin: '2026-04-02T16:20:00Z',
-  },
-  { id: '8', name: 'Grace Hall', email: 'grace@example.com', lastLogin: null },
-  {
-    id: '9',
-    name: 'Henry Irving',
-    email: 'henry@example.com',
-    lastLogin: '2026-03-28T11:55:00Z',
-  },
-  {
-    id: '10',
-    name: 'Ivy Johnson',
-    email: 'ivy@example.com',
-    lastLogin: '2026-04-01T07:30:00Z',
-  },
-  {
-    id: '11',
-    name: 'Jack King',
-    email: 'jack@example.com',
-    lastLogin: '2026-02-14T13:00:00Z',
-  },
+  }),
 ]
 
-function UsersTable({ users }: { users: typeof mockUsers }) {
-  const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 10
-  const totalPages = Math.ceil(users.length / pageSize)
-  const startIndex = (currentPage - 1) * pageSize
-  const paginatedUsers = users.slice(startIndex, startIndex + pageSize)
+/** 11 users — spills onto page 2, pagination appears */
+const manyUsers: User[] = Array.from({ length: 11 }, (_, i) =>
+  makeUser({ id: String(i + 1) }),
+)
 
-  const formatDateTime = (date: string | null) => {
-    if (!date) return '—'
-    const d = new Date(date)
-    const day = String(d.getDate()).padStart(2, '0')
-    const month = String(d.getMonth() + 1).padStart(2, '0')
-    const year = d.getFullYear()
-    const hours = String(d.getHours()).padStart(2, '0')
-    const minutes = String(d.getMinutes()).padStart(2, '0')
-    return `${day}/${month}/${year} ${hours}:${minutes}`
-  }
+/** 60 users — 6 pages, enough to trigger ellipsis in getVisiblePages on page 1 */
+const lotsOfUsers: User[] = Array.from({ length: 60 }, (_, i) =>
+  makeUser({ id: String(i + 1) }),
+)
 
-  return (
-    <div>
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Last Login</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedUsers.map((user) => (
-            <tr key={user.id}>
-              <td>{user.name}</td>
-              <td>{user.email}</td>
-              <td>{formatDateTime(user.lastLogin)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {totalPages > 1 && (
-        <div data-testid="pagination">
-          <button
-            type="button"
-            data-testid="prev"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          <span data-testid="page-info">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            type="button"
-            data-testid="next"
-            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </div>
-  )
-}
+// ---------------------------------------------------------------------------
+// Table rendering
+// ---------------------------------------------------------------------------
 
-describe('UsersTable', () => {
-  it('renders table headers correctly', () => {
-    render(<UsersTable users={mockUsers} />)
-    expect(screen.getByText('Name')).toBeInTheDocument()
-    expect(screen.getByText('Email')).toBeInTheDocument()
-    expect(screen.getByText('Last Login')).toBeInTheDocument()
+describe('UsersPage — table', () => {
+  it('renders column headers', () => {
+    render(<UsersPage users={fewUsers} />)
+    expect(
+      screen.getByRole('columnheader', { name: /^name$/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: /^email$/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('columnheader', { name: /^last login$/i }),
+    ).toBeInTheDocument()
   })
 
-  it('displays user data correctly', () => {
-    render(<UsersTable users={mockUsers} />)
+  it('displays user name and email', () => {
+    render(<UsersPage users={fewUsers} />)
     expect(screen.getByText('John Doe')).toBeInTheDocument()
     expect(screen.getByText('john@example.com')).toBeInTheDocument()
   })
 
-  it('formats lastLogin as DD/MM/YYYY HH:MM', () => {
-    render(<UsersTable users={mockUsers} />)
-    expect(screen.getByText('01/04/2026 07:30')).toBeInTheDocument()
+  it('renders empty state when no users are provided', () => {
+    render(<UsersPage users={[]} />)
+    expect(screen.getByText('No users found.')).toBeInTheDocument()
   })
 
-  it('displays placeholder for null lastLogin', () => {
-    render(<UsersTable users={mockUsers} />)
+  it('formats lastLogin using the real formatDateTime utility', () => {
+    render(<UsersPage users={fewUsers} />)
+    // Derive expected string via the same utility the component uses —
+    // avoids timezone-sensitive hardcoding
+    const expected = formatDateTime(new Date('2026-04-01T10:30:00Z'))
+    expect(screen.getByText(expected)).toBeInTheDocument()
+  })
+
+  it('renders em-dash for null lastLogin', () => {
+    render(<UsersPage users={fewUsers} />)
+    // Jane Smith has null lastLogin → should render '—'
     const dashes = screen.getAllByText('—')
     expect(dashes.length).toBeGreaterThan(0)
   })
+})
 
-  it('pagination shows correct page count', () => {
-    render(<UsersTable users={mockUsers} />)
-    expect(screen.getByTestId('page-info')).toHaveTextContent('Page 1 of 2')
+// ---------------------------------------------------------------------------
+// Pagination — visibility
+// ---------------------------------------------------------------------------
+
+describe('UsersPage — pagination visibility', () => {
+  it('does not render pagination when users fit on one page', () => {
+    render(<UsersPage users={fewUsers} />)
+    expect(
+      screen.queryByRole('navigation', { name: /pagination/i }),
+    ).not.toBeInTheDocument()
   })
 
-  it('clicking next button changes page', async () => {
+  it('renders pagination when users exceed one page', () => {
+    render(<UsersPage users={manyUsers} />)
+    expect(
+      screen.getByRole('navigation', { name: /pagination/i }),
+    ).toBeInTheDocument()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Pagination — navigation
+// ---------------------------------------------------------------------------
+
+describe('UsersPage — pagination navigation', () => {
+  it('shows first page users on initial render', () => {
+    render(<UsersPage users={manyUsers} />)
+    // User 1 is on page 1 (index 0)
+    expect(screen.getByText('User 1')).toBeInTheDocument()
+    // User 11 is on page 2 (index 10) — should NOT be visible
+    expect(screen.queryByText('User 11')).not.toBeInTheDocument()
+  })
+
+  it('clicking Next shows the next page', async () => {
     const user = userEvent.setup()
-    render(<UsersTable users={mockUsers} />)
-    await user.click(screen.getByTestId('next'))
-    expect(screen.getByTestId('page-info')).toHaveTextContent('Page 2 of 2')
+    render(<UsersPage users={manyUsers} />)
+    await user.click(screen.getByLabelText(/go to next page/i))
+    expect(screen.getByText('User 11')).toBeInTheDocument()
+    expect(screen.queryByText('User 1')).not.toBeInTheDocument()
   })
 
-  it('clicking previous button changes page', async () => {
+  it('clicking Previous returns to the previous page', async () => {
     const user = userEvent.setup()
-    render(<UsersTable users={mockUsers} />)
-    await user.click(screen.getByTestId('next'))
-    expect(screen.getByTestId('page-info')).toHaveTextContent('Page 2 of 2')
-    await user.click(screen.getByTestId('prev'))
-    expect(screen.getByTestId('page-info')).toHaveTextContent('Page 1 of 2')
+    render(<UsersPage users={manyUsers} />)
+    await user.click(screen.getByLabelText(/go to next page/i))
+    await user.click(screen.getByLabelText(/go to previous page/i))
+    expect(screen.getByText('User 1')).toBeInTheDocument()
+    expect(screen.queryByText('User 11')).not.toBeInTheDocument()
   })
 
-  it('previous button is disabled on first page', () => {
-    render(<UsersTable users={mockUsers} />)
-    expect(screen.getByTestId('prev')).toBeDisabled()
-  })
-
-  it('next button is disabled on last page', async () => {
+  it('clicking a page number link navigates to that page', async () => {
     const user = userEvent.setup()
-    render(<UsersTable users={mockUsers} />)
-    await user.click(screen.getByTestId('next'))
-    expect(screen.getByTestId('next')).toBeDisabled()
+    render(<UsersPage users={manyUsers} />)
+    // Page number links rendered as <a data-slot="pagination-link">
+    const pageLinks = document.querySelectorAll('[data-slot="pagination-link"]')
+    // First is prev (aria-label), last is next (aria-label), middle ones are page numbers
+    // Find the one with text content "2"
+    const page2Link = Array.from(pageLinks).find(
+      (el) => el.textContent?.trim() === '2',
+    ) as HTMLElement
+    await user.click(page2Link)
+    expect(screen.getByText('User 11')).toBeInTheDocument()
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Pagination — disabled states
+// ---------------------------------------------------------------------------
+
+describe('UsersPage — pagination disabled states', () => {
+  it('Previous link has aria-disabled="true" on the first page', () => {
+    render(<UsersPage users={manyUsers} />)
+    const prevLink = screen.getByLabelText(/go to previous page/i)
+    expect(prevLink).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('Next link does not have aria-disabled on the first page', () => {
+    render(<UsersPage users={manyUsers} />)
+    const nextLink = screen.getByLabelText(/go to next page/i)
+    expect(nextLink).not.toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('Next link has aria-disabled="true" on the last page', async () => {
+    const user = userEvent.setup()
+    render(<UsersPage users={manyUsers} />)
+    await user.click(screen.getByLabelText(/go to next page/i))
+    const nextLink = screen.getByLabelText(/go to next page/i)
+    expect(nextLink).toHaveAttribute('aria-disabled', 'true')
+  })
+
+  it('Previous link does not have aria-disabled on the last page', async () => {
+    const user = userEvent.setup()
+    render(<UsersPage users={manyUsers} />)
+    await user.click(screen.getByLabelText(/go to next page/i))
+    const prevLink = screen.getByLabelText(/go to previous page/i)
+    expect(prevLink).not.toHaveAttribute('aria-disabled', 'true')
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Pagination — ellipsis
+// ---------------------------------------------------------------------------
+
+describe('UsersPage — pagination ellipsis', () => {
+  it('renders ellipsis when there are enough pages', () => {
+    render(<UsersPage users={lotsOfUsers} />)
+    // PaginationEllipsis has aria-hidden so accessible queries skip it.
+    // Query via data-slot attribute instead.
+    const ellipsis = document.querySelector('[data-slot="pagination-ellipsis"]')
+    expect(ellipsis).toBeInTheDocument()
+  })
+
+  it('does not render ellipsis when pages are few', () => {
+    render(<UsersPage users={manyUsers} />)
+    const ellipsis = document.querySelector('[data-slot="pagination-ellipsis"]')
+    expect(ellipsis).not.toBeInTheDocument()
   })
 })
