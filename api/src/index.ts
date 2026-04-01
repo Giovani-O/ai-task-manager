@@ -7,6 +7,7 @@ import {
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
+import { listUsers } from '@/routes/users'
 
 const app = Fastify({ logger: true })
 
@@ -31,5 +32,7 @@ await app.register(scalarApiReference, {
 })
 
 app.get('/health', async () => ({ status: 'ok' }))
+
+await app.register(listUsers)
 
 await app.listen({ port: 3333, host: '0.0.0.0' })
