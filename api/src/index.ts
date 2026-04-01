@@ -4,10 +4,11 @@ import swagger from '@fastify/swagger'
 import scalarApiReference from '@scalar/fastify-api-reference'
 import Fastify from 'fastify'
 import {
+  jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
 } from 'fastify-type-provider-zod'
-import { listUsers } from '@/routes/users'
+import { listUsers } from './routes/users'
 
 const app = Fastify({ logger: true })
 
@@ -25,6 +26,7 @@ await app.register(swagger, {
       version: '1.0.0',
     },
   },
+  transform: jsonSchemaTransform,
 })
 
 await app.register(scalarApiReference, {
