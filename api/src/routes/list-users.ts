@@ -3,9 +3,7 @@ import { createSelectSchema } from 'drizzle-zod'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { db } from '@/db'
-import { users } from '@/db/schema/schema'
-
-// Listagem com paginação infinita (baseada em cursor)
+import { users } from '@/db/schema'
 
 export const listUsers: FastifyPluginAsyncZod = async (app) => {
   app.get(
@@ -36,7 +34,7 @@ export const listUsers: FastifyPluginAsyncZod = async (app) => {
     },
     async (request, reply) => {
       const { page, pageSize } = request.query
-      const offset = page + 1
+      const offset = (page - 1) * pageSize
 
       const result = await db
         .select({
@@ -50,7 +48,7 @@ export const listUsers: FastifyPluginAsyncZod = async (app) => {
         .limit(pageSize)
         .offset(offset)
 
-      return reply.send({
+      return reply.status(200).send({
         users: result,
         page,
         pageSize,

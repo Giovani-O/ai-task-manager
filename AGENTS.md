@@ -159,7 +159,7 @@ import type * as React from 'react'
 - Use `FastifyPluginAsyncZod` type for route plugins
 - Always register `validatorCompiler` and `serializerCompiler` (already in `server.ts`)
 - Organise routes as plugins in `src/routes/` (one file per domain)
-- DB access via Drizzle in `src/db/` — schema in `src/db/schema/schema.ts`
+- DB access via Drizzle in `src/db/` — schema in `src/db/schema.ts`
 - API docs available at `/docs` via `@scalar/fastify-api-reference`
 
 ```ts
@@ -268,7 +268,7 @@ pnpm dlx shadcn@latest add <component>
 | Path | Purpose |
 |------|---------|
 | `api/src/server.ts` | Fastify app entry point |
-| `api/src/db/schema/schema.ts` | Drizzle ORM table definitions |
+| `api/src/db/schema.ts` | Drizzle ORM table definitions |
 | `api/drizzle.config.ts` | Drizzle Kit configuration |
 | `api/docker-compose.yml` | PostgreSQL 17 container |
 | `client/src/main.tsx` | React app entry, router + query setup |

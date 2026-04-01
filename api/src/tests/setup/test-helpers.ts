@@ -1,5 +1,6 @@
+import path from 'node:path'
 import { fastifyCors } from '@fastify/cors'
-import { drizzle } from 'drizzle-orm/postgres-js'
+import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import { fastify } from 'fastify'
 import {
@@ -8,15 +9,21 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
 import postgres from 'postgres'
-import { db } from '@/db'
-import { users } from '@/db/schema/schema'
-import { listUsers } from '@/routes/list-users'
-import path from 'node:path'
+import { uuidv7 } from 'uuidv7'
+import { users } from '@/db/schema'
 import { env } from '@/env'
+import { listUsers } from '@/routes/list-users'
+
+type TestDbType = PostgresJsDatabase<Record<string, never>> & {
+  $client: postgres.Sql<{}>
+}
 
 // Setup do server de testes
 export async function buildApp() {
   const connectionString = env.DATABASE_URL || ''
+
+  // Create test DB
+  const testDb = drizzle(postgres(connectionString))
 
   // Run migrations (ensure DB is ready for this specific test suite)
   const migrationClient = postgres(connectionString, { max: 1 })
@@ -31,22 +38,25 @@ export async function buildApp() {
   app.setSerializerCompiler(serializerCompiler)
 
   await app.register(fastifyCors, { origin: true })
+  app.decorate('db', testDb)
+
   app.register(listUsers)
 
-  return app
+  return { app, testDb }
 }
 
 // Limpa banco de testes
-export async function cleanDb() {
+export async function cleanDb(db: TestDbType) {
   await db.delete(users)
 }
 
-// Insere dados de teste
-export async function insertWebhook(
+// Insere user de teste
+export async function insertUser(
+  db: TestDbType,
   overrides: Partial<typeof users.$inferInsert> = {},
 ) {
   const defaults = {
-    id: '019d4a17-1404-73af-9e52-40a296ad3b42',
+    id: uuidv7(),
     name: 'John Doe',
     email: 'john@doe.com',
   }
