@@ -22,7 +22,7 @@ export const listUsers: FastifyPluginAsyncZod = async (app) => {
                 id: true,
                 name: true,
                 email: true,
-                createdAt: true,
+                lastLogin: true,
               }),
             ),
             page: z.number(),
@@ -40,7 +40,7 @@ export const listUsers: FastifyPluginAsyncZod = async (app) => {
           id: users.id,
           name: users.name,
           email: users.email,
-          createdAt: users.createdAt,
+          lastLogin: users.lastLogin,
         })
         .from(users)
         .orderBy(desc(users.id))
