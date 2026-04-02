@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutUsersRouteImport } from './routes/_layout/users'
+import { Route as LayoutNewTaskRouteImport } from './routes/_layout/new-task'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -27,27 +28,40 @@ const LayoutUsersRoute = LayoutUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutNewTaskRoute = LayoutNewTaskRouteImport.update({
+  id: '/new-task',
+  path: '/new-task',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/new-task': typeof LayoutNewTaskRoute
   '/users': typeof LayoutUsersRoute
 }
 export interface FileRoutesByTo {
+  '/new-task': typeof LayoutNewTaskRoute
   '/users': typeof LayoutUsersRoute
   '/': typeof LayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
+  '/_layout/new-task': typeof LayoutNewTaskRoute
   '/_layout/users': typeof LayoutUsersRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/users'
+  fullPaths: '/' | '/new-task' | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/users' | '/'
-  id: '__root__' | '/_layout' | '/_layout/users' | '/_layout/'
+  to: '/new-task' | '/users' | '/'
+  id:
+    | '__root__'
+    | '/_layout'
+    | '/_layout/new-task'
+    | '/_layout/users'
+    | '/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,15 +91,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutUsersRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/new-task': {
+      id: '/_layout/new-task'
+      path: '/new-task'
+      fullPath: '/new-task'
+      preLoaderRoute: typeof LayoutNewTaskRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
 interface LayoutRouteChildren {
+  LayoutNewTaskRoute: typeof LayoutNewTaskRoute
   LayoutUsersRoute: typeof LayoutUsersRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
+  LayoutNewTaskRoute: LayoutNewTaskRoute,
   LayoutUsersRoute: LayoutUsersRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }

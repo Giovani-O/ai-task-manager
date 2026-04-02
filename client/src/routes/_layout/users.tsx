@@ -48,6 +48,9 @@ async function fetchUsers(page: number, pageSize: number) {
 }
 
 export const Route = createFileRoute('/_layout/users')({
+  beforeLoad: () => ({
+    title: 'Users',
+  }),
   component: UsersPage,
 })
 

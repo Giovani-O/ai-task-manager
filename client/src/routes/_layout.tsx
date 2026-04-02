@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router'
+import { createFileRoute, Outlet, useMatches } from '@tanstack/react-router'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import { SiteHeader } from '@/components/site-header'
@@ -9,7 +9,12 @@ export const Route = createFileRoute('/_layout')({
 })
 
 function LayoutComponent() {
-  const { title } = Route.useRouteContext()
+  const matches = useMatches()
+  const title =
+    matches
+      .map((m) => (m.context as { title?: string }).title)
+      .reverse()
+      .find(Boolean) ?? 'Dashboard'
   return (
     <>
       <AppSidebar variant="inset" />
