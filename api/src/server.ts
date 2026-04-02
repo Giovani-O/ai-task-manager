@@ -44,6 +44,6 @@ await app.register(listUsers)
 await app.listen({ port: 3333, host: '0.0.0.0' }).then(() => {
   console.info('--------------------------------------------------------')
   console.info('    Node.js server is running! http://localhost:3333    ')
-  console.info('    Docs available at httl://localhost:3333/docs        ')
+  console.info('    Docs available at http://localhost:3333/docs        ')
   console.info('--------------------------------------------------------')
 })

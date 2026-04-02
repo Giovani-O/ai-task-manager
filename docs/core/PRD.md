@@ -106,14 +106,14 @@ Original description: "create login form with authentication"
 
 | Field                     | Type     | Description                                    |
 | ------------------------- | -------- | ---------------------------------------------- |
-| id                        | string   | UUID of the task                               |
+| id                        | string   | UUIDV7 of the task                               |
 | title                     | string   | Refined task title                             |
 | description               | string   | Detailed task description                      |
-| steps                     | string   | List of actionable steps                       |
+| steps                     | string[] | List of actionable steps                       |
 | estimated_time            | string   | Example: "2 days"                              |
 | implementation_suggestion | string   | Suggested approach and tools                   |
-| acceptance_criteria       | string   | Task completion requirements                   |
-| suggested_tests           | string   | Suggested tests                                |
+| acceptance_criteria       | string[] | Task completion requirements                   |
+| suggested_tests           | string[] | Suggested tests                                |
 | content                   | string   | Combined markdown version of all fields        |
 | chat_history              | json     | JSON representation of associated conversation |
 | created_at                | datetime | Creation timestamp                             |
