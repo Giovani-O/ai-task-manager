@@ -177,7 +177,7 @@ function MessageBubble({ message }: { message: Message }) {
   const isUser = message.role === 'user'
 
   return (
-    <div className={cn('flex gap-4', isUser && 'flex-row-reverse')}>
+    <div className={cn('flex w-full gap-4', isUser && 'flex-row-reverse')}>
       <Avatar className="size-9 shrink-0">
         <AvatarFallback
           className={cn(
@@ -195,13 +195,13 @@ function MessageBubble({ message }: { message: Message }) {
       </Avatar>
       <div
         className={cn(
-          'max-w-[80%] rounded-2xl px-4 py-3',
+          'min-w-0 max-w-[85%] rounded-2xl px-4 py-3',
           isUser
             ? 'bg-primary text-primary-foreground'
             : 'bg-muted text-foreground',
         )}
       >
-        <p className="whitespace-pre-wrap text-sm leading-relaxed">
+        <p className="whitespace-pre-wrap text-sm leading-relaxed [overflow-wrap:anywhere]">
           {message.text}
         </p>
       </div>
