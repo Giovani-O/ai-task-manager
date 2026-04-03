@@ -128,14 +128,8 @@ export function TasksPage() {
                   <SortIcon column="createdAt" />
                 </div>
               </TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort('userName')}
-              >
-                <div className="flex items-center">
-                  User
-                  <SortIcon column="userName" />
-                </div>
+              <TableHead className="cursor-pointer hover:bg-muted/50">
+                <div className="flex items-center">User</div>
               </TableHead>
             </TableRow>
           </TableHeader>
