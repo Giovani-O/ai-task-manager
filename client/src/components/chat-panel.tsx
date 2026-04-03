@@ -154,7 +154,7 @@ export function ChatPanel() {
                 'w-full resize-none rounded-xl border bg-card px-4 py-3 text-base shadow-sm transition-all',
                 'placeholder:text-muted-foreground',
                 'focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20',
-                'disabled:cursor-not-allowed disabled:opacity-50',
+                'disabled:cursor-not-allowed disabled:opacity-50 scrollbar-hide',
               )}
             />
           </div>
