@@ -112,29 +112,46 @@ async function seed() {
 
   console.log('Creating tasks table...')
   await client.query(`
-    CREATE TABLE IF NOT EXISTS tasks (
-      id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
-      steps JSONB NOT NULL,
-      estimated_time TEXT NOT NULL,
-      implementation_suggestion TEXT NOT NULL,
-      acceptance_criteria JSONB NOT NULL,
-      suggested_tests JSONB NOT NULL,
-      content TEXT NOT NULL,
-      chat_history JSONB NOT NULL,
-      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-    )
-  `)
+	CREATE TABLE IF NOT EXISTS tasks (
+		id TEXT PRIMARY KEY,
+		author_id TEXT NOT NULL REFERENCES users(id),
+		title TEXT NOT NULL,
+		description TEXT NOT NULL,
+		steps JSONB NOT NULL,
+		estimated_time TEXT NOT NULL,
+		implementation_suggestion TEXT NOT NULL,
+		acceptance_criteria JSONB NOT NULL,
+		suggested_tests JSONB NOT NULL,
+		content TEXT NOT NULL,
+		chat_history JSONB NOT NULL,
+		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+		updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+	)
+	`)
+
+  console.log('Creating posts table...')
+  await client.query(`
+ CREATE TABLE IF NOT EXISTS posts (
+ id TEXT PRIMARY KEY,
+ title TEXT NOT NULL,
+ content TEXT NOT NULL,
+ published BOOLEAN NOT NULL DEFAULT FALSE,
+ author_id TEXT NOT NULL REFERENCES users(id),
+ created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+ updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+ )
+ `)
 
   console.log('Truncating tables...')
   await client.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE')
   await client.query('TRUNCATE TABLE tasks RESTART IDENTITY CASCADE')
+  await client.query('TRUNCATE TABLE posts RESTART IDENTITY CASCADE')
 
   console.log('Seeding 30 users...')
+  const userIds: string[] = []
   for (let i = 0; i < 30; i++) {
     const id = uuidv7()
+    userIds.push(id)
     const email = faker.internet.email()
     const name = faker.person.fullName()
     const lastLogin = faker.date.recent({ days: 30 })
@@ -151,6 +168,7 @@ async function seed() {
   console.log('Seeding 60 tasks...')
   for (let i = 0; i < 60; i++) {
     const id = uuidv7()
+    const authorId = userIds[i % userIds.length]
     const title = faker.helpers.arrayElement(TASK_TITLES)
     const description = faker.hacker.phrase()
     const steps = generateSteps()
@@ -172,10 +190,11 @@ async function seed() {
     const chatHistory: unknown[] = []
 
     await client.query(
-      `INSERT INTO tasks (id, title, description, steps, estimated_time, implementation_suggestion, acceptance_criteria, suggested_tests, content, chat_history, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      `INSERT INTO tasks (id, author_id, title, description, steps, estimated_time, implementation_suggestion, acceptance_criteria, suggested_tests, content, chat_history, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
       [
         id,
+        authorId,
         title,
         description,
         JSON.stringify(steps),
@@ -190,6 +209,21 @@ async function seed() {
       ],
     )
     console.log(`Created task: ${title}`)
+  }
+
+  console.log('Seeding 60 posts...')
+  for (let i = 0; i < 60; i++) {
+    const id = uuidv7()
+    const authorId = userIds[i % userIds.length]
+    const title = faker.hacker.phrase()
+    const content = faker.lorem.paragraphs({ min: 2, max: 5 })
+    const published = i % 5 === 0
+    await client.query(
+      `INSERT INTO posts (id, title, content, published, author_id, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [id, title, content, published, authorId, new Date(), new Date()],
+    )
+    console.log(`Created post: ${title}`)
   }
 
   console.log('Seed complete!')
