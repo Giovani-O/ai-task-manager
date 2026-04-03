@@ -15,7 +15,7 @@ export default defineConfig({
     isolate: false,
     poolOptions: {
       forks: {
-        maxForks: 6,
+        maxForks: 1,
         minForks: 1,
       },
     },

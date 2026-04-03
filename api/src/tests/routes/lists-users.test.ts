@@ -1,5 +1,5 @@
 import { uuidv7 } from 'uuidv7'
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { buildApp, cleanDb, insertUser } from '../setup/test-helpers'
 
 let helper: Awaited<ReturnType<typeof buildApp>>
@@ -10,10 +10,6 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   await cleanDb(helper.testDb)
-})
-
-afterAll(async () => {
-  await helper.app.close()
 })
 
 describe('GET /users', () => {

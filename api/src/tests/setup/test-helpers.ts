@@ -1,7 +1,5 @@
-import path from 'node:path'
 import { fastifyCors } from '@fastify/cors'
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres'
-import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { fastify } from 'fastify'
 import {
   serializerCompiler,
@@ -11,22 +9,26 @@ import {
 import pg from 'pg'
 import { uuidv7 } from 'uuidv7'
 import * as schema from '@/db/schema'
-import { users } from '@/db/schema'
+import { posts, tasks, users } from '@/db/schema'
 import { env } from '@/env'
+import { getTask } from '@/routes/get-task'
+import { listTasks } from '@/routes/list-tasks'
 import { listUsers } from '@/routes/list-users'
 
-// Setup do server de testes
-export async function buildApp() {
+type AppHelper = {
+  app: ReturnType<typeof fastify>
+  testDb: NodePgDatabase<typeof schema>
+}
+
+let _helper: AppHelper | undefined
+
+// Returns (and caches) a single shared app instance for the whole test run.
+// Migrations are run once in global-setup.ts before any test file executes.
+export async function buildApp(): Promise<AppHelper> {
+  if (_helper) return _helper
+
   const connectionString = env.DATABASE_URL || ''
 
-  // Run migrations (ensure DB is ready for this specific test suite)
-  const migrationClient = new pg.Pool({ connectionString })
-  await migrate(drizzle(migrationClient), {
-    migrationsFolder: path.join(process.cwd(), 'drizzle'),
-  })
-  await migrationClient.end()
-
-  // Create test DB
   const pool = new pg.Pool({ connectionString })
   const testDb = drizzle(pool, { schema, casing: 'snake_case' })
 
@@ -39,12 +41,19 @@ export async function buildApp() {
   app.decorate('db', testDb)
 
   app.register(listUsers)
+  app.register(listTasks)
+  app.register(getTask)
 
-  return { app, testDb }
+  await app.ready()
+
+  _helper = { app, testDb }
+  return _helper
 }
 
-// Limpa banco de testes
+// Limpa banco de testes (order respects FKs: child tables before users)
 export async function cleanDb(db: NodePgDatabase<typeof schema>) {
+  await db.delete(tasks)
+  await db.delete(posts)
   await db.delete(users)
 }
 
@@ -61,6 +70,32 @@ export async function insertUser(
 
   const result = await db
     .insert(users)
+    .values({ ...defaults, ...overrides })
+    .returning()
+
+  return result[0]
+}
+
+// Insere task de teste
+export async function insertTask(
+  db: NodePgDatabase<typeof schema>,
+  overrides: Partial<typeof tasks.$inferInsert> & { authorId: string },
+) {
+  const defaults = {
+    id: uuidv7(),
+    title: 'Test Task',
+    description: 'A test task description',
+    steps: ['Step 1', 'Step 2'],
+    estimatedTime: '2h',
+    implementationSuggestion: 'Use TDD',
+    acceptanceCriteria: ['It works'],
+    suggestedTests: ['Test it'],
+    content: 'Task content',
+    chatHistory: [],
+  }
+
+  const result = await db
+    .insert(tasks)
     .values({ ...defaults, ...overrides })
     .returning()
 
