@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutUsersRouteImport } from './routes/_layout/users'
+import { Route as LayoutTasksRouteImport } from './routes/_layout/tasks'
 import { Route as LayoutNewTaskRouteImport } from './routes/_layout/new-task'
 
 const LayoutRoute = LayoutRouteImport.update({
@@ -28,6 +29,11 @@ const LayoutUsersRoute = LayoutUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutTasksRoute = LayoutTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutNewTaskRoute = LayoutNewTaskRouteImport.update({
   id: '/new-task',
   path: '/new-task',
@@ -37,10 +43,12 @@ const LayoutNewTaskRoute = LayoutNewTaskRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
   '/new-task': typeof LayoutNewTaskRoute
+  '/tasks': typeof LayoutTasksRoute
   '/users': typeof LayoutUsersRoute
 }
 export interface FileRoutesByTo {
   '/new-task': typeof LayoutNewTaskRoute
+  '/tasks': typeof LayoutTasksRoute
   '/users': typeof LayoutUsersRoute
   '/': typeof LayoutIndexRoute
 }
@@ -48,18 +56,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/_layout/new-task': typeof LayoutNewTaskRoute
+  '/_layout/tasks': typeof LayoutTasksRoute
   '/_layout/users': typeof LayoutUsersRoute
   '/_layout/': typeof LayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/new-task' | '/users'
+  fullPaths: '/' | '/new-task' | '/tasks' | '/users'
   fileRoutesByTo: FileRoutesByTo
-  to: '/new-task' | '/users' | '/'
+  to: '/new-task' | '/tasks' | '/users' | '/'
   id:
     | '__root__'
     | '/_layout'
     | '/_layout/new-task'
+    | '/_layout/tasks'
     | '/_layout/users'
     | '/_layout/'
   fileRoutesById: FileRoutesById
@@ -91,6 +101,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutUsersRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/tasks': {
+      id: '/_layout/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof LayoutTasksRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/new-task': {
       id: '/_layout/new-task'
       path: '/new-task'
@@ -103,12 +120,14 @@ declare module '@tanstack/react-router' {
 
 interface LayoutRouteChildren {
   LayoutNewTaskRoute: typeof LayoutNewTaskRoute
+  LayoutTasksRoute: typeof LayoutTasksRoute
   LayoutUsersRoute: typeof LayoutUsersRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutNewTaskRoute: LayoutNewTaskRoute,
+  LayoutTasksRoute: LayoutTasksRoute,
   LayoutUsersRoute: LayoutUsersRoute,
   LayoutIndexRoute: LayoutIndexRoute,
 }
