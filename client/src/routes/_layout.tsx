@@ -20,7 +20,7 @@ function LayoutComponent() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader title={title} />
-        <div className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col max-h-screen ">
           <Outlet />
         </div>
       </SidebarInset>

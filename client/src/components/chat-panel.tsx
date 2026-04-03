@@ -94,7 +94,7 @@ export function ChatPanel() {
       </header>
 
       {/* Messages */}
-      <ScrollArea ref={scrollRef} className="flex-1 p-6">
+      <ScrollArea ref={scrollRef} className="flex-1 p-6 overflow-auto">
         <div className="space-y-6">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-20 text-center">
