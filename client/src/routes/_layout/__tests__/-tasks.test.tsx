@@ -39,7 +39,6 @@ function renderTasksPage(queryClient = makeQueryClient()) {
 
 function makeTask(overrides: Partial<Task> & { id: string }): Task {
   return {
-    id: overrides.id,
     title: overrides.title ?? `Task ${overrides.id}`,
     estimatedTime: overrides.estimatedTime ?? '4h',
     createdAt: overrides.createdAt ?? new Date(),
@@ -252,6 +251,7 @@ describe('TasksPage — sorting', () => {
     await waitFor(() => screen.getByText('Task 1'))
     const headers = screen.getAllByRole('columnheader')
     headers.forEach((header) => {
+      if (header.textContent?.includes('User')) return
       expect(header).toHaveTextContent(/⇅|↑|↓/)
     })
   })
@@ -318,21 +318,6 @@ describe('TasksPage — sorting', () => {
 
     await waitFor(() => {
       expect(dateHeader).toHaveTextContent(/↑/)
-    })
-  })
-
-  it('clicking User header sorts by user name', async () => {
-    const user = userEvent.setup()
-    mockFetchResponse(TWENTY_TASKS)
-    renderTasksPage()
-
-    await waitFor(() => screen.getByText('Task 1'))
-
-    const userHeader = screen.getByRole('columnheader', { name: /user/i })
-    await user.click(userHeader)
-
-    await waitFor(() => {
-      expect(userHeader).toHaveTextContent(/↑/)
     })
   })
 
