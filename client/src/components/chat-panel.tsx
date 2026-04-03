@@ -162,7 +162,7 @@ export function ChatPanel() {
             type="submit"
             size="icon"
             disabled={!input.trim() || isLoading}
-            className="size-12 shrink-0 rounded-xl"
+            className="size-12 shrink-0 rounded-xl cursor-pointer"
             aria-label="Send message"
           >
             <HugeiconsIcon icon={AiMagicIcon} size={20} strokeWidth={1.5} />
