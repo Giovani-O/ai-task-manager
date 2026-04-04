@@ -1,6 +1,6 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
 import {
@@ -57,7 +57,7 @@ export const Route = createFileRoute('/_layout/users')({
 export function UsersPage() {
   const [page, setPage] = useState(1)
 
-  const { data, isLoading } = useSuspenseQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['users', page],
     queryFn: () => fetchUsers(page, PAGE_SIZE),
   })

@@ -175,6 +175,7 @@ client/src/
 - **Hugeicons exclusively** for icons (`@hugeicons/core-free-icons` + `@hugeicons/react`)
 - Use `clsx` + `tailwind-merge` (via the `cn()` utility) for conditional classNames
 - Use barrel exports where appropriate
+- Prefer lazy imports where appropriate
 
 ### API (Fastify)
 

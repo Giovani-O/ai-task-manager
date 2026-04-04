@@ -1,6 +1,6 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Suspense, useState } from 'react'
 import {
@@ -70,7 +70,7 @@ export function TasksPage() {
   const [sortColumn, setSortColumn] = useState<SortColumn>('createdAt')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
-  const { data, isLoading } = useSuspenseQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['tasks', page, sortColumn, sortDirection],
     queryFn: () => fetchTasks(page, PAGE_SIZE, sortColumn, sortDirection),
   })
