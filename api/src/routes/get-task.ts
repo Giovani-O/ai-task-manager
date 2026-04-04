@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { tasks, users } from '@/db/schema'
+import { tasks } from '@/db/schema'
 import { TaskSchema } from '@/types/task'
 
 export const getTask: FastifyPluginAsyncZod = async (app) => {
@@ -46,10 +46,8 @@ export const getTask: FastifyPluginAsyncZod = async (app) => {
           chatHistory: tasks.chatHistory,
           createdAt: tasks.createdAt,
           updatedAt: tasks.updatedAt,
-          userName: users.name,
         })
         .from(tasks)
-        .innerJoin(users, eq(tasks.authorId, users.id))
         .where(eq(tasks.id, id))
         .limit(1)
 

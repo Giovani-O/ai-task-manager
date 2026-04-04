@@ -15,7 +15,6 @@ export const TaskSchema = z.object({
   chatHistory: z.array(z.unknown()),
   createdAt: z.date(),
   updatedAt: z.date(),
-  userName: z.string(),
 })
 
 export type Task = z.infer<typeof TaskSchema>

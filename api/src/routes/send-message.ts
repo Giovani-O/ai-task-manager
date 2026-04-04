@@ -48,8 +48,9 @@ export const sendMessage: FastifyPluginAsyncZod = async (app) => {
         ],
         createdAt: new Date(),
         updatedAt: new Date(),
-        userName: 'John Doe',
       }
+
+      // Insert chat here
 
       return reply.status(200).send({ data: response })
     },

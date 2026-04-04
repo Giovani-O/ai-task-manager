@@ -1,7 +1,6 @@
-import { Mail01Icon, PlusSignCircleIcon } from '@hugeicons/core-free-icons'
+import { PlusSignCircleIcon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import { Link } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -33,14 +32,6 @@ export function NavMain({
                 <span>Quick Create</span>
               </SidebarMenuButton>
             </Link>
-            <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-            >
-              <HugeiconsIcon icon={Mail01Icon} strokeWidth={2} />
-              <span className="sr-only">Inbox</span>
-            </Button>
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>

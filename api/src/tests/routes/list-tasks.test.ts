@@ -5,7 +5,6 @@ import {
   cleanDb,
   insertChat,
   insertTask,
-  insertUser,
 } from '../setup/test-helpers'
 
 let helper: Awaited<ReturnType<typeof buildApp>>
@@ -31,26 +30,22 @@ describe('GET /tasks', () => {
   })
 
   it('tasks array must return existing tasks in desc createdAt order by default', async () => {
-    const user = await insertUser(helper.testDb, {
-      id: uuidv7(),
-      email: 'author@test.me',
-    })
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     const a = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: user.id,
+      authorId: uuidv7(),
       chatId: chat.id,
       title: 'Task A',
     })
     const b = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: user.id,
+      authorId: uuidv7(),
       chatId: chat.id,
       title: 'Task B',
     })
     const c = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: user.id,
+      authorId: uuidv7(),
       chatId: chat.id,
       title: 'Task C',
     })
@@ -63,34 +58,11 @@ describe('GET /tasks', () => {
     expect(tasks[2].id).toBe(a.id)
   })
 
-  it('task includes userName from joined user', async () => {
-    const user = await insertUser(helper.testDb, {
-      id: uuidv7(),
-      email: 'named@test.me',
-      name: 'Named User',
-    })
+  it('task includes required fields: id, title, estimatedTime, createdAt', async () => {
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: user.id,
-      chatId: chat.id,
-    })
-
-    const res = await helper.app.inject({ method: 'GET', url: '/tasks' })
-    const { tasks } = res.json()
-    expect(res.statusCode).toBe(200)
-    expect(tasks[0].userName).toBe('Named User')
-  })
-
-  it('task includes required fields: id, title, estimatedTime, createdAt, userName', async () => {
-    const user = await insertUser(helper.testDb, {
-      id: uuidv7(),
-      email: 'fields@test.me',
-    })
-    const chat = await insertChat(helper.testDb, { id: uuidv7() })
-    await insertTask(helper.testDb, {
-      id: uuidv7(),
-      authorId: user.id,
+      authorId: uuidv7(),
       chatId: chat.id,
       title: 'Field Test',
       estimatedTime: '3h',
@@ -103,7 +75,6 @@ describe('GET /tasks', () => {
     expect(tasks[0]).toHaveProperty('title', 'Field Test')
     expect(tasks[0]).toHaveProperty('estimatedTime', '3h')
     expect(tasks[0]).toHaveProperty('createdAt')
-    expect(tasks[0]).toHaveProperty('userName')
   })
 
   it('returns correct pagination metadata', async () => {
@@ -114,15 +85,11 @@ describe('GET /tasks', () => {
   })
 
   it('respects custom pageSize parameter', async () => {
-    const user = await insertUser(helper.testDb, {
-      id: uuidv7(),
-      email: 'page@test.me',
-    })
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     for (let i = 0; i < 5; i++) {
       await insertTask(helper.testDb, {
         id: uuidv7(),
-        authorId: user.id,
+        authorId: uuidv7(),
         chatId: chat.id,
         title: `Task ${i}`,
       })
@@ -139,15 +106,11 @@ describe('GET /tasks', () => {
   })
 
   it('paginates through results correctly', async () => {
-    const user = await insertUser(helper.testDb, {
-      id: uuidv7(),
-      email: 'paginate@test.me',
-    })
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     for (let i = 0; i < 5; i++) {
       await insertTask(helper.testDb, {
         id: uuidv7(),
-        authorId: user.id,
+        authorId: uuidv7(),
         chatId: chat.id,
         title: `Task ${i}`,
       })
@@ -173,14 +136,10 @@ describe('GET /tasks', () => {
   })
 
   it('returns empty array when page exceeds total pages', async () => {
-    const user = await insertUser(helper.testDb, {
-      id: uuidv7(),
-      email: 'exceed@test.me',
-    })
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: user.id,
+      authorId: uuidv7(),
       chatId: chat.id,
     })
 

@@ -1,19 +1,6 @@
 import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
 
-export const users = pgTable('users', {
-  id: text()
-    .primaryKey()
-    .$defaultFn(() => uuidv7()),
-  email: text().unique().notNull(),
-  name: text().notNull(),
-  lastLogin: timestamp('last_login', { mode: 'date' }),
-  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { mode: 'date' })
-    .notNull()
-    .$onUpdate(() => new Date()),
-})
-
 export const chat = pgTable('chats', {
   id: text()
     .primaryKey()
@@ -30,9 +17,7 @@ export const tasks = pgTable('tasks', {
   id: text()
     .primaryKey()
     .$defaultFn(() => uuidv7()),
-  authorId: text('author_id')
-    .notNull()
-    .references(() => users.id),
+  authorId: text('author_id').notNull(),
   chatId: text('chat_id')
     .notNull()
     .references(() => chat.id),

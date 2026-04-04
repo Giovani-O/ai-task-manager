@@ -9,11 +9,10 @@ import {
 import pg from 'pg'
 import { uuidv7 } from 'uuidv7'
 import * as schema from '@/db/schema'
-import { chat, tasks, users } from '@/db/schema'
+import { chat, tasks } from '@/db/schema'
 import { env } from '@/env'
 import { getTask } from '@/routes/get-task'
 import { listTasks } from '@/routes/list-tasks'
-import { listUsers } from '@/routes/list-users'
 import { sendMessage } from '@/routes/send-message'
 
 type AppHelper = {
@@ -41,10 +40,9 @@ export async function buildApp(): Promise<AppHelper> {
   await app.register(fastifyCors, { origin: true })
   app.decorate('db', testDb)
 
-  app.register(listUsers)
   app.register(listTasks)
   app.register(getTask)
-  app.register(sendMessage)
+  await app.register(sendMessage)
 
   await app.ready()
 
@@ -52,30 +50,10 @@ export async function buildApp(): Promise<AppHelper> {
   return _helper
 }
 
-// Limpa banco de testes (order respects FKs: child tables before users)
+// Limpa banco de testes
 export async function cleanDb(db: NodePgDatabase<typeof schema>) {
   await db.delete(tasks)
-  await db.delete(users)
   await db.delete(chat)
-}
-
-// Insere user de teste
-export async function insertUser(
-  db: NodePgDatabase<typeof schema>,
-  overrides: Partial<typeof users.$inferInsert> = {},
-) {
-  const defaults = {
-    id: uuidv7(),
-    name: 'John Doe',
-    email: 'john@doe.com',
-  }
-
-  const result = await db
-    .insert(users)
-    .values({ ...defaults, ...overrides })
-    .returning()
-
-  return result[0]
 }
 
 // Insere chat de teste

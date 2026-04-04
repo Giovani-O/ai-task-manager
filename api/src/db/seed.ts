@@ -98,18 +98,6 @@ ${task.suggestedTests.map((t) => `- ${t}`).join('\n')}
 async function seed() {
   await client.connect()
 
-  console.log('Creating users table...')
-  await client.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      name TEXT NOT NULL,
-      last_login TIMESTAMP,
-      created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-      updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-    )
-  `)
-
   console.log('Creating chats table...')
   await client.query(`
     CREATE TABLE IF NOT EXISTS chats (
@@ -125,7 +113,7 @@ async function seed() {
   await client.query(`
 	CREATE TABLE IF NOT EXISTS tasks (
 		id TEXT PRIMARY KEY,
-		author_id TEXT NOT NULL REFERENCES users(id),
+		author_id TEXT NOT NULL,
 		chat_id TEXT NOT NULL REFERENCES chats(id),
 		title TEXT NOT NULL,
 		description TEXT NOT NULL,
@@ -142,27 +130,8 @@ async function seed() {
 	`)
 
   console.log('Truncating tables...')
-  await client.query('TRUNCATE TABLE users RESTART IDENTITY CASCADE')
   await client.query('TRUNCATE TABLE chats RESTART IDENTITY CASCADE')
   await client.query('TRUNCATE TABLE tasks RESTART IDENTITY CASCADE')
-
-  console.log('Seeding 30 users...')
-  const userIds: string[] = []
-  for (let i = 0; i < 30; i++) {
-    const id = uuidv7()
-    userIds.push(id)
-    const email = faker.internet.email()
-    const name = faker.person.fullName()
-    const lastLogin = faker.date.recent({ days: 30 })
-
-    await client.query(
-      `INSERT INTO users (id, email, name, last_login, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      ON CONFLICT (email) DO NOTHING`,
-      [id, email, name, lastLogin, new Date(), new Date()],
-    )
-    console.log(`Created user: ${name} (${email})`)
-  }
 
   console.log('Seeding 10 chats...')
   const chatIds: string[] = []
@@ -183,7 +152,7 @@ async function seed() {
   console.log('Seeding 5 tasks...')
   for (let i = 0; i < 5; i++) {
     const id = uuidv7()
-    const authorId = userIds[i % userIds.length]
+    const authorId = uuidv7()
     const chatId = chatIds[i % chatIds.length]
     const title = faker.helpers.arrayElement(TASK_TITLES)
     const description = faker.hacker.phrase()

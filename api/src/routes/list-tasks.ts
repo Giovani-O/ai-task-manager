@@ -1,7 +1,7 @@
-import { desc, eq } from 'drizzle-orm'
+import { desc } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { tasks, users } from '@/db/schema'
+import { tasks } from '@/db/schema'
 
 export const listTasks: FastifyPluginAsyncZod = async (app) => {
   app.get(
@@ -26,7 +26,6 @@ export const listTasks: FastifyPluginAsyncZod = async (app) => {
                 title: z.string(),
                 estimatedTime: z.string(),
                 createdAt: z.date(),
-                userName: z.string(),
               }),
             ),
             page: z.number(),
@@ -49,10 +48,8 @@ export const listTasks: FastifyPluginAsyncZod = async (app) => {
           title: tasks.title,
           estimatedTime: tasks.estimatedTime,
           createdAt: tasks.createdAt,
-          userName: users.name,
         })
         .from(tasks)
-        .innerJoin(users, eq(tasks.authorId, users.id))
         .orderBy(order)
         .limit(pageSize)
         .offset(offset)
