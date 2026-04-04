@@ -9,7 +9,7 @@ import {
 import pg from 'pg'
 import { uuidv7 } from 'uuidv7'
 import * as schema from '@/db/schema'
-import { posts, tasks, users } from '@/db/schema'
+import { chat, tasks, users } from '@/db/schema'
 import { env } from '@/env'
 import { getTask } from '@/routes/get-task'
 import { listTasks } from '@/routes/list-tasks'
@@ -53,8 +53,8 @@ export async function buildApp(): Promise<AppHelper> {
 // Limpa banco de testes (order respects FKs: child tables before users)
 export async function cleanDb(db: NodePgDatabase<typeof schema>) {
   await db.delete(tasks)
-  await db.delete(posts)
   await db.delete(users)
+  await db.delete(chat)
 }
 
 // Insere user de teste
@@ -76,10 +76,32 @@ export async function insertUser(
   return result[0]
 }
 
+// Insere chat de teste
+export async function insertChat(
+  db: NodePgDatabase<typeof schema>,
+  overrides: Partial<typeof chat.$inferInsert> = {},
+) {
+  const defaults = {
+    id: uuidv7(),
+    title: 'Test Chat',
+    description: 'A test chat description',
+  }
+
+  const result = await db
+    .insert(chat)
+    .values({ ...defaults, ...overrides })
+    .returning()
+
+  return result[0]
+}
+
 // Insere task de teste
 export async function insertTask(
   db: NodePgDatabase<typeof schema>,
-  overrides: Partial<typeof tasks.$inferInsert> & { authorId: string },
+  overrides: Partial<typeof tasks.$inferInsert> & {
+    authorId: string
+    chatId: string
+  },
 ) {
   const defaults = {
     id: uuidv7(),

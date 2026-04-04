@@ -3,6 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {
   buildApp,
   cleanDb,
+  insertChat,
   insertTask,
   insertUser,
 } from '../setup/test-helpers'
@@ -42,9 +43,11 @@ describe('GET /tasks/:id', () => {
       email: 'author@task.me',
       name: 'Task Author',
     })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
     const task = await insertTask(helper.testDb, {
       id: uuidv7(),
       authorId: user.id,
+      chatId: chat.id,
       title: 'My Task',
       description: 'Detailed description',
       steps: ['Step 1', 'Step 2'],
@@ -84,9 +87,11 @@ describe('GET /tasks/:id', () => {
       id: uuidv7(),
       email: 'timestamps@task.me',
     })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
     const task = await insertTask(helper.testDb, {
       id: uuidv7(),
       authorId: user.id,
+      chatId: chat.id,
     })
 
     const res = await helper.app.inject({
@@ -105,14 +110,17 @@ describe('GET /tasks/:id', () => {
       id: uuidv7(),
       email: 'multi@task.me',
     })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
     const task1 = await insertTask(helper.testDb, {
       id: uuidv7(),
       authorId: user.id,
+      chatId: chat.id,
       title: 'First Task',
     })
     const task2 = await insertTask(helper.testDb, {
       id: uuidv7(),
       authorId: user.id,
+      chatId: chat.id,
       title: 'Second Task',
     })
 

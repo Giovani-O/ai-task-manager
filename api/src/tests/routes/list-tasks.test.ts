@@ -3,6 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import {
   buildApp,
   cleanDb,
+  insertChat,
   insertTask,
   insertUser,
 } from '../setup/test-helpers'
@@ -34,19 +35,23 @@ describe('GET /tasks', () => {
       id: uuidv7(),
       email: 'author@test.me',
     })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
     const a = await insertTask(helper.testDb, {
       id: uuidv7(),
       authorId: user.id,
+      chatId: chat.id,
       title: 'Task A',
     })
     const b = await insertTask(helper.testDb, {
       id: uuidv7(),
       authorId: user.id,
+      chatId: chat.id,
       title: 'Task B',
     })
     const c = await insertTask(helper.testDb, {
       id: uuidv7(),
       authorId: user.id,
+      chatId: chat.id,
       title: 'Task C',
     })
 
@@ -64,7 +69,12 @@ describe('GET /tasks', () => {
       email: 'named@test.me',
       name: 'Named User',
     })
-    await insertTask(helper.testDb, { id: uuidv7(), authorId: user.id })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
+    await insertTask(helper.testDb, {
+      id: uuidv7(),
+      authorId: user.id,
+      chatId: chat.id,
+    })
 
     const res = await helper.app.inject({ method: 'GET', url: '/tasks' })
     const { tasks } = res.json()
@@ -77,9 +87,11 @@ describe('GET /tasks', () => {
       id: uuidv7(),
       email: 'fields@test.me',
     })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
     await insertTask(helper.testDb, {
       id: uuidv7(),
       authorId: user.id,
+      chatId: chat.id,
       title: 'Field Test',
       estimatedTime: '3h',
     })
@@ -106,10 +118,12 @@ describe('GET /tasks', () => {
       id: uuidv7(),
       email: 'page@test.me',
     })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
     for (let i = 0; i < 5; i++) {
       await insertTask(helper.testDb, {
         id: uuidv7(),
         authorId: user.id,
+        chatId: chat.id,
         title: `Task ${i}`,
       })
     }
@@ -129,10 +143,12 @@ describe('GET /tasks', () => {
       id: uuidv7(),
       email: 'paginate@test.me',
     })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
     for (let i = 0; i < 5; i++) {
       await insertTask(helper.testDb, {
         id: uuidv7(),
         authorId: user.id,
+        chatId: chat.id,
         title: `Task ${i}`,
       })
     }
@@ -161,7 +177,12 @@ describe('GET /tasks', () => {
       id: uuidv7(),
       email: 'exceed@test.me',
     })
-    await insertTask(helper.testDb, { id: uuidv7(), authorId: user.id })
+    const chat = await insertChat(helper.testDb, { id: uuidv7() })
+    await insertTask(helper.testDb, {
+      id: uuidv7(),
+      authorId: user.id,
+      chatId: chat.id,
+    })
 
     const res = await helper.app.inject({
       method: 'GET',
