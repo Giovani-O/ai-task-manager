@@ -1,6 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { ChatPanel } from '@/components/chat-panel'
-import { TaskPreviewPanel } from '@/components/task-preview-panel'
+import { lazy, Suspense } from 'react'
+
+const ChatPanel = lazy(() =>
+  import('@/components/chat-panel').then((m) => ({ default: m.ChatPanel })),
+)
+const TaskPreviewPanel = lazy(() =>
+  import('@/components/task-preview-panel').then((m) => ({
+    default: m.TaskPreviewPanel,
+  })),
+)
 
 export const Route = createFileRoute('/_layout/new-task')({
   beforeLoad: () => ({
@@ -14,10 +22,26 @@ function NewTaskPage() {
     <div className="flex flex-1 flex-col p-4 lg:p-6 max-h-[calc(100vh-64px)]">
       <div className="flex h-full min-h-0 flex-1 overflow-hidden rounded-lg border ">
         <div className="w-1/2 border-r">
-          <ChatPanel />
+          <Suspense
+            fallback={
+              <div className="p-4 w-full h-full flex items-center justify-center">
+                Loading chat...
+              </div>
+            }
+          >
+            <ChatPanel />
+          </Suspense>
         </div>
         <div className="w-1/2">
-          <TaskPreviewPanel />
+          <Suspense
+            fallback={
+              <div className="p-4 w-full h-full flex items-center justify-center">
+                Loading preview...
+              </div>
+            }
+          >
+            <TaskPreviewPanel />
+          </Suspense>
         </div>
       </div>
     </div>

@@ -165,6 +165,8 @@ client/src/
 
 - **Load data in route modules only**, not in feature components
 - Use TanStack Query for all data fetching on the client
+- Prefer useSuspenseQuery to fetch data wehere possible
+- When using useSuspenseQuery, use react Suspense on the relevant components
 - Prefer server-side data loading where possible
 
 ### UI Components

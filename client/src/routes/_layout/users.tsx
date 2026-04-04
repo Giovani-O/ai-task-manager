@@ -1,8 +1,8 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import {
   Pagination,
   PaginationContent,
@@ -57,7 +57,7 @@ export const Route = createFileRoute('/_layout/users')({
 export function UsersPage() {
   const [page, setPage] = useState(1)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useSuspenseQuery({
     queryKey: ['users', page],
     queryFn: () => fetchUsers(page, PAGE_SIZE),
   })
@@ -68,76 +68,84 @@ export function UsersPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:p-6">
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Last Login</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
+      <Suspense
+        fallback={
+          <div className="p-4 w-full h-full flex items-center justify-center">
+            Loading users...
+          </div>
+        }
+      >
+        <div className="rounded-lg border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center">
-                  Loading…
-                </TableCell>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Last Login</TableHead>
               </TableRow>
-            ) : users.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center">
-                  No users found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>{user.name}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    {formatDateTime(
-                      user.lastLogin ? new Date(user.lastLogin) : null,
-                    )}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center">
+                    Loading…
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      {(!isFirstPage || hasNextPage) && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-disabled={isFirstPage}
-                className={
-                  isFirstPage
-                    ? 'pointer-events-none opacity-50'
-                    : 'cursor-pointer'
-                }
-              >
-                <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-              </PaginationPrevious>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setPage((p) => p + 1)}
-                aria-disabled={!hasNextPage}
-                className={
-                  !hasNextPage
-                    ? 'pointer-events-none opacity-50'
-                    : 'cursor-pointer'
-                }
-              >
-                <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-              </PaginationNext>
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+              ) : users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center">
+                    No users found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      {formatDateTime(
+                        user.lastLogin ? new Date(user.lastLogin) : null,
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {(!isFirstPage || hasNextPage) && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  aria-disabled={isFirstPage}
+                  className={
+                    isFirstPage
+                      ? 'pointer-events-none opacity-50'
+                      : 'cursor-pointer'
+                  }
+                >
+                  <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
+                </PaginationPrevious>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage((p) => p + 1)}
+                  aria-disabled={!hasNextPage}
+                  className={
+                    !hasNextPage
+                      ? 'pointer-events-none opacity-50'
+                      : 'cursor-pointer'
+                  }
+                >
+                  <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
+                </PaginationNext>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </Suspense>
     </div>
   )
 }

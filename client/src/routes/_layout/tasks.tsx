@@ -1,8 +1,8 @@
 import { ArrowLeft01Icon, ArrowRight01Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { useQuery } from '@tanstack/react-query'
+import { useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import {
   Pagination,
   PaginationContent,
@@ -70,7 +70,7 @@ export function TasksPage() {
   const [sortColumn, setSortColumn] = useState<SortColumn>('createdAt')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useSuspenseQuery({
     queryKey: ['tasks', page, sortColumn, sortDirection],
     queryFn: () => fetchTasks(page, PAGE_SIZE, sortColumn, sortDirection),
   })
@@ -97,100 +97,108 @@ export function TasksPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:p-6">
-      <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort('title')}
-              >
-                <div className="flex items-center">
-                  Title
-                  <SortIcon column="title" />
-                </div>
-              </TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort('estimatedTime')}
-              >
-                <div className="flex items-center">
-                  Estimated time
-                  <SortIcon column="estimatedTime" />
-                </div>
-              </TableHead>
-              <TableHead
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort('createdAt')}
-              >
-                <div className="flex items-center">
-                  Creation date
-                  <SortIcon column="createdAt" />
-                </div>
-              </TableHead>
-              <TableHead className="cursor-pointer hover:bg-muted/50">
-                <div className="flex items-center">User</div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
+      <Suspense
+        fallback={
+          <div className="p-4 w-full h-full flex items-center justify-center">
+            Loading tasks...
+          </div>
+        }
+      >
+        <div className="rounded-lg border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  Loading...
-                </TableCell>
+                <TableHead
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('title')}
+                >
+                  <div className="flex items-center">
+                    Title
+                    <SortIcon column="title" />
+                  </div>
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('estimatedTime')}
+                >
+                  <div className="flex items-center">
+                    Estimated time
+                    <SortIcon column="estimatedTime" />
+                  </div>
+                </TableHead>
+                <TableHead
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('createdAt')}
+                >
+                  <div className="flex items-center">
+                    Creation date
+                    <SortIcon column="createdAt" />
+                  </div>
+                </TableHead>
+                <TableHead className="cursor-pointer hover:bg-muted/50">
+                  <div className="flex items-center">User</div>
+                </TableHead>
               </TableRow>
-            ) : tasks.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  No tasks found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              tasks.map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell>{task.title}</TableCell>
-                  <TableCell>{task.estimatedTime}</TableCell>
-                  <TableCell>{formatDateTime(task.createdAt)}</TableCell>
-                  <TableCell>{task.userName}</TableCell>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    Loading...
+                  </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-      {(page > 1 || hasNextPage) && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-disabled={isFirstPage}
-                className={
-                  isFirstPage
-                    ? 'pointer-events-none opacity-50'
-                    : 'cursor-pointer'
-                }
-              >
-                <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
-              </PaginationPrevious>
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setPage((p) => p + 1)}
-                aria-disabled={!hasNextPage}
-                className={
-                  !hasNextPage
-                    ? 'pointer-events-none opacity-50'
-                    : 'cursor-pointer'
-                }
-              >
-                <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
-              </PaginationNext>
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      )}
+              ) : tasks.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    No tasks found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                tasks.map((task) => (
+                  <TableRow key={task.id}>
+                    <TableCell>{task.title}</TableCell>
+                    <TableCell>{task.estimatedTime}</TableCell>
+                    <TableCell>{formatDateTime(task.createdAt)}</TableCell>
+                    <TableCell>{task.userName}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {(page > 1 || hasNextPage) && (
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  aria-disabled={isFirstPage}
+                  className={
+                    isFirstPage
+                      ? 'pointer-events-none opacity-50'
+                      : 'cursor-pointer'
+                  }
+                >
+                  <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
+                </PaginationPrevious>
+              </PaginationItem>
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage((p) => p + 1)}
+                  aria-disabled={!hasNextPage}
+                  className={
+                    !hasNextPage
+                      ? 'pointer-events-none opacity-50'
+                      : 'cursor-pointer'
+                  }
+                >
+                  <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
+                </PaginationNext>
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
+      </Suspense>
     </div>
   )
 }
