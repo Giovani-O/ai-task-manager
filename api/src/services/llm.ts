@@ -1,5 +1,5 @@
 import { google } from '@ai-sdk/google'
-import { generateObject } from 'ai'
+import { generateText, Output } from 'ai'
 import { z } from 'zod'
 import { TaskSchema } from '@/types/task'
 
@@ -24,15 +24,17 @@ export async function generateTask(
   const model = google('gemini-2.5-flash')
 
   try {
-    const { object } = await generateObject({
+    const { output } = await generateText({
       model,
-      schema: GenerateTaskResponseSchema,
+      output: Output.object({
+        schema: GenerateTaskResponseSchema,
+      }),
       system:
         'You are a Senior Project Manager. Given a user request, break it down into a structured task with title, description, steps, estimated time, implementation suggestions, acceptance criteria, and suggested tests. Also provide a friendly reply message explaining what you did.',
       prompt: userMessage,
     })
 
-    return object
+    return output
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(`LLM generation failed: ${error.message}`)
