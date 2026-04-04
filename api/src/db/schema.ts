@@ -1,4 +1,4 @@
-import { boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
 
 export const users = pgTable('users', {
@@ -14,6 +14,18 @@ export const users = pgTable('users', {
     .$onUpdate(() => new Date()),
 })
 
+export const chat = pgTable('chats', {
+  id: text()
+    .primaryKey()
+    .$defaultFn(() => uuidv7()),
+  title: text(),
+  description: text(),
+  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .notNull()
+    .$onUpdate(() => new Date()),
+})
+
 export const tasks = pgTable('tasks', {
   id: text()
     .primaryKey()
@@ -21,6 +33,9 @@ export const tasks = pgTable('tasks', {
   authorId: text('author_id')
     .notNull()
     .references(() => users.id),
+  chatId: text('chat_id')
+    .notNull()
+    .references(() => chat.id),
   title: text().notNull(),
   description: text().notNull(),
   steps: jsonb().notNull().$type<string[]>(),
@@ -36,18 +51,18 @@ export const tasks = pgTable('tasks', {
     .$onUpdate(() => new Date()),
 })
 
-export const posts = pgTable('posts', {
-  id: text()
-    .primaryKey()
-    .$defaultFn(() => uuidv7()),
-  title: text().notNull(),
-  content: text().notNull(),
-  published: boolean().notNull().default(false),
-  authorId: text('author_id')
-    .notNull()
-    .references(() => users.id),
-  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { mode: 'date' })
-    .notNull()
-    .$onUpdate(() => new Date()),
-})
+// export const posts = pgTable('posts', {
+//   id: text()
+//     .primaryKey()
+//     .$defaultFn(() => uuidv7()),
+//   title: text().notNull(),
+//   content: text().notNull(),
+//   published: boolean().notNull().default(false),
+//   authorId: text('author_id')
+//     .notNull()
+//     .references(() => users.id),
+//   createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
+//   updatedAt: timestamp('updated_at', { mode: 'date' })
+//     .notNull()
+//     .$onUpdate(() => new Date()),
+// })
