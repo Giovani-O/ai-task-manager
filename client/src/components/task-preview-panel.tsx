@@ -6,11 +6,13 @@ import {
   TextIcon,
 } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Skeleton } from '@/components/ui/skeleton'
 
-type TaskPreview = {
+export type TaskPreview = {
   title: string
   description: string
   steps: string[]
@@ -21,42 +23,79 @@ type TaskPreview = {
   content: string
 }
 
-const mockTask: TaskPreview = {
-  title: 'User Authentication System',
-  description:
-    'Implement a secure user authentication system with login, logout, and session management using JWT tokens.',
-  steps: [
-    'Set up database schema for users table with encrypted password field',
-    'Create registration endpoint with password validation',
-    'Implement login endpoint with JWT token generation',
-    'Add authentication middleware to protect routes',
-    'Implement session refresh mechanism',
-  ],
-  estimatedTime: '4-6 hours',
-  implementationSuggestion:
-    'Use bcrypt for password hashing with salt rounds of 12. Store JWT refresh tokens in httpOnly cookies. Implement rate limiting on login attempts to prevent brute force attacks.',
-  acceptanceCriteria: [
-    'Users can register with email and password',
-    'Users can log in and receive JWT tokens',
-    'Protected routes require valid JWT',
-    'Passwords are hashed with bcrypt',
-    'Login attempts are rate-limited',
-  ],
-  suggestedTests: [
-    'Test user registration with valid/invalid inputs',
-    'Test login with correct and incorrect credentials',
-    'Test JWT token validation on protected routes',
-    'Test rate limiting on failed login attempts',
-  ],
-  content: 'Full-stack authentication with JWT and bcrypt',
+const CURRENT_TASK_KEY = ['currentTask'] as const
+
+export function useCurrentTask() {
+  return useQuery({
+    queryKey: CURRENT_TASK_KEY,
+    queryFn: () => Promise.resolve(null),
+    staleTime: Infinity,
+  })
 }
+
+export { CURRENT_TASK_KEY }
 
 interface TaskPreviewPanelProps {
   task?: TaskPreview
+  isGenerating?: boolean
 }
 
-export function TaskPreviewPanel({ task }: TaskPreviewPanelProps) {
-  const displayTask = task ?? mockTask
+export function TaskPreviewPanel({
+  task: propTask,
+  isGenerating = false,
+}: TaskPreviewPanelProps) {
+  const { data: queryTask } = useCurrentTask()
+  const task = propTask ?? queryTask ?? null
+
+  if (isGenerating) {
+    return (
+      <div className="flex h-full flex-col">
+        <header className="flex items-center gap-3 border-b px-6 py-4">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <HugeiconsIcon icon={TextIcon} size={20} strokeWidth={1.5} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">
+              Task Preview
+            </h2>
+            <p className="text-sm text-muted-foreground">Generating task...</p>
+          </div>
+        </header>
+
+        <ScrollArea className="flex-1 overflow-auto p-6">
+          <div className="space-y-6">
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </div>
+        </ScrollArea>
+      </div>
+    )
+  }
+
+  if (!task) {
+    return (
+      <div className="flex h-full flex-col">
+        <header className="flex items-center gap-3 border-b px-6 py-4">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <HugeiconsIcon icon={TextIcon} size={20} strokeWidth={1.5} />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">
+              Task Preview
+            </h2>
+            <p className="text-sm text-muted-foreground">Waiting for task</p>
+          </div>
+        </header>
+        <div className="flex flex-1 items-center justify-center">
+          <p className="text-center text-muted-foreground">
+            Describe your task to the agent to start.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -67,21 +106,19 @@ export function TaskPreviewPanel({ task }: TaskPreviewPanelProps) {
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Task Preview</h2>
           <p className="text-sm text-muted-foreground">
-            {task ? 'Structured task from AI agent' : 'Using mock data'}
+            Structured task from AI agent
           </p>
         </div>
       </header>
 
       <ScrollArea className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
-          <OverviewCard task={displayTask} />
-          <StepsCard steps={displayTask.steps} />
-          <ImplementationCard
-            suggestion={displayTask.implementationSuggestion}
-          />
+          <OverviewCard task={task} />
+          <StepsCard steps={task.steps} />
+          <ImplementationCard suggestion={task.implementationSuggestion} />
           <TestingCard
-            acceptanceCriteria={displayTask.acceptanceCriteria}
-            suggestedTests={displayTask.suggestedTests}
+            acceptanceCriteria={task.acceptanceCriteria}
+            suggestedTests={task.suggestedTests}
           />
         </div>
       </ScrollArea>
@@ -91,6 +128,7 @@ export function TaskPreviewPanel({ task }: TaskPreviewPanelProps) {
         <Button
           className="h-[49px] w-full rounded-xl text-base cursor-pointer"
           size="default"
+          disabled={isGenerating}
         >
           <HugeiconsIcon icon={SaveIcon} size={20} strokeWidth={1.5} />
           <span className="ml-2">Save Task</span>
@@ -197,6 +235,24 @@ function TestingCard({
             ))}
           </ul>
         </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function SkeletonCard() {
+  return (
+    <Card>
+      <CardHeader className="border-b">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-4" />
+          <Skeleton className="h-5 w-16" />
+        </div>
+      </CardHeader>
+      <CardContent className="pt-4 space-y-3">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
       </CardContent>
     </Card>
   )

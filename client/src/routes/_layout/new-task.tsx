@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
 
 const ChatPanel = lazy(() =>
   import('@/components/chat-panel').then((m) => ({ default: m.ChatPanel })),
@@ -18,6 +18,8 @@ export const Route = createFileRoute('/_layout/new-task')({
 })
 
 function NewTaskPage() {
+  const [isGenerating, setIsGenerating] = useState(false)
+
   return (
     <div className="flex flex-1 flex-col p-4 lg:p-6 max-h-[calc(100vh-64px)]">
       <div className="flex h-full min-h-0 flex-1 overflow-hidden rounded-lg border ">
@@ -29,7 +31,7 @@ function NewTaskPage() {
               </div>
             }
           >
-            <ChatPanel />
+            <ChatPanel onGeneratingChange={setIsGenerating} />
           </Suspense>
         </div>
         <div className="w-1/2">
@@ -40,7 +42,7 @@ function NewTaskPage() {
               </div>
             }
           >
-            <TaskPreviewPanel />
+            <TaskPreviewPanel isGenerating={isGenerating} />
           </Suspense>
         </div>
       </div>

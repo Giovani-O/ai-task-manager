@@ -1,11 +1,30 @@
 import { AiMagicIcon, User03Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { FormEvent, KeyboardEvent } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
+import { CURRENT_TASK_KEY } from './task-preview-panel'
+
+export type GeneratedTask = {
+  id: string
+  authorId: string
+  chatId: string
+  title: string
+  description: string
+  steps: string[]
+  estimatedTime: string
+  implementationSuggestion: string
+  acceptanceCriteria: string[]
+  suggestedTests: string[]
+  content: string
+  chatHistory: unknown[]
+  createdAt: string
+  updatedAt: string
+}
 
 type MessageRole = 'user' | 'agent'
 
@@ -15,12 +34,54 @@ type Message = {
   text: string
 }
 
-export function ChatPanel() {
+type ChatPanelProps = {
+  onGeneratingChange?: (isGenerating: boolean) => void
+}
+
+export function ChatPanel({ onGeneratingChange }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([])
-  const [isLoading, setIsLoading] = useState(false)
   const [input, setInput] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const queryClient = useQueryClient()
+
+  const mutation = useMutation({
+    mutationKey: ['send-message'],
+    mutationFn: async (message: string) => {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/send-message`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+        },
+      )
+      if (!response.ok) throw new Error('Failed to send message')
+      const data = await response.json()
+      return data as {
+        data: {
+          task: GeneratedTask
+          reply: string
+        }
+      }
+    },
+    onMutate: () => {
+      onGeneratingChange?.(true)
+    },
+    onSuccess: (data) => {
+      const agentMessage: Message = {
+        id: data.data.task.id,
+        role: 'agent',
+        text: data.data.reply,
+      }
+      setMessages((prev) => [...prev, agentMessage])
+      queryClient.setQueryData(CURRENT_TASK_KEY, data.data.task)
+      onGeneratingChange?.(false)
+    },
+    onError: () => {
+      onGeneratingChange?.(false)
+    },
+  })
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: messages is used as a trigger to scroll on new message
   useEffect(() => {
@@ -45,7 +106,7 @@ export function ChatPanel() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = input.trim()
-    if (!trimmed || isLoading) return
+    if (!trimmed || mutation.isPending) return
 
     const userMessage: Message = {
       id: crypto.randomUUID(),
@@ -54,35 +115,12 @@ export function ChatPanel() {
     }
 
     setMessages((prev) => [...prev, userMessage])
-    setIsLoading(true)
     setInput('')
     if (inputRef.current) {
       inputRef.current.style.height = 'auto'
     }
 
-    setTimeout(() => {
-      fetch(`${import.meta.env.VITE_API_URL}/send-message`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: trimmed }),
-      })
-        .then((res) => {
-          if (!res.ok) throw new Error('Failed to send message')
-          return res.json()
-        })
-        .then((data) => {
-          const agentMessage: Message = {
-            id: data.data.id,
-            role: 'agent',
-            text: `${data.data.title}\n\n${data.data.description}`,
-          }
-          setMessages((prev) => [...prev, agentMessage])
-          setIsLoading(false)
-        })
-        .catch(() => {
-          setIsLoading(false)
-        })
-    }, 3000)
+    mutation.mutate(trimmed)
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -102,7 +140,7 @@ export function ChatPanel() {
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Task Agent</h2>
           <p className="text-sm text-muted-foreground">
-            {isLoading ? 'Thinking...' : 'Ready to help'}
+            {mutation.isPending ? 'Thinking...' : 'Ready to help'}
           </p>
         </div>
       </header>
@@ -129,7 +167,7 @@ export function ChatPanel() {
             <MessageBubble key={message.id} message={message} />
           ))}
 
-          {isLoading &&
+          {mutation.isPending &&
             messages.length > 0 &&
             messages[messages.length - 1]?.role === 'user' && (
               <div className="flex gap-4">
@@ -162,7 +200,7 @@ export function ChatPanel() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Describe your task..."
-              disabled={isLoading}
+              disabled={mutation.isPending}
               rows={1}
               className={cn(
                 'w-full resize-none rounded-xl border bg-card px-4 py-3 text-base shadow-sm transition-all',
@@ -175,7 +213,7 @@ export function ChatPanel() {
           <Button
             type="submit"
             size="icon"
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || mutation.isPending}
             className="size-12 shrink-0 rounded-xl cursor-pointer"
             aria-label="Send message"
           >

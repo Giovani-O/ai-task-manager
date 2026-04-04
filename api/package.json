@@ -17,9 +17,11 @@
     "db:seed": "tsx src/db/seed.ts"
   },
   "dependencies": {
+    "@ai-sdk/google": "^3.0.58",
     "@fastify/cors": "^11.0.0",
     "@fastify/swagger": "^9.0.0",
     "@scalar/fastify-api-reference": "^1.25.0",
+    "ai": "^6.0.146",
     "dotenv": "^16.0.0",
     "drizzle-orm": "^0.38.0",
     "drizzle-zod": "^0.5.0",

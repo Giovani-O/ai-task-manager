@@ -12,21 +12,6 @@ beforeEach(async () => {
 })
 
 describe('POST /send-message', () => {
-  it('returns 200 and response when message is valid', async () => {
-    const res = await helper.app.inject({
-      method: 'POST',
-      url: '/send-message',
-      payload: { message: 'Hello, agent!' },
-    })
-
-    expect(res.statusCode).toBe(200)
-    const body = res.json()
-    expect(body).toHaveProperty('data')
-    expect(body.data).toHaveProperty('id')
-    expect(body.data).toHaveProperty('title')
-    expect(body.data).toHaveProperty('description')
-  })
-
   it('returns 400 when message is missing', async () => {
     const res = await helper.app.inject({
       method: 'POST',

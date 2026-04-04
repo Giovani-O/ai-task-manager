@@ -19,5 +19,6 @@ export default defineConfig({
         minForks: 1,
       },
     },
+    include: ['src/tests/**/*.test.ts'],
   },
 })

@@ -1,7 +1,8 @@
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { uuidv7 } from 'uuidv7'
 import { z } from 'zod'
-import { type Task, TaskSchema } from '@/types/task'
+import { generateTask } from '@/services/llm'
+import { TaskSchema } from '@/types/task'
 
 export const sendMessage: FastifyPluginAsyncZod = async (app) => {
   app.post(
@@ -15,7 +16,10 @@ export const sendMessage: FastifyPluginAsyncZod = async (app) => {
         }),
         response: {
           200: z.object({
-            data: TaskSchema,
+            data: z.object({
+              task: TaskSchema,
+              reply: z.string(),
+            }),
           }),
         },
       },
@@ -23,36 +27,24 @@ export const sendMessage: FastifyPluginAsyncZod = async (app) => {
     async (request, reply) => {
       const { message } = request.body
 
-      const response: Task = {
+      const { task: generatedTask, reply: agentReply } =
+        await generateTask(message)
+
+      const now = new Date()
+      const response = {
+        ...generatedTask,
         id: uuidv7(),
         authorId: uuidv7(),
         chatId: uuidv7(),
-        title: 'Lorem Ipsum',
-        description: message,
-        steps: ['Lorem ipsum dolor sit amet', 'Consectetur adipiscing elit'],
-        estimatedTime: '1 hour',
-        implementationSuggestion: 'Lorem ipsum dolor sit amet.',
-        acceptanceCriteria: [
-          'Lorem ipsum dolor sit amet',
-          'Consectetur adipiscing elit',
-        ],
-        suggestedTests: [
-          'Lorem ipsum dolor sit amet',
-          'Consectetur adipiscing elit',
-        ],
-        content:
-          'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-        chatHistory: [
-          'Lorem ipsum dolor sit amet',
-          'Consectetur adipiscing elit',
-        ],
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        content: '',
+        createdAt: now,
+        updatedAt: now,
+        chatHistory: [],
       }
 
-      // Insert chat here
-
-      return reply.status(200).send({ data: response })
+      return reply
+        .status(200)
+        .send({ data: { task: response, reply: agentReply } })
     },
   )
 }
