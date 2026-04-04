@@ -13,6 +13,7 @@ import { db } from './db'
 import { getTask } from './routes/get-task'
 import { listTasks } from './routes/list-tasks'
 import { listUsers } from './routes/list-users'
+import { sendMessage } from './routes/send-message'
 
 const app = Fastify({ logger: true }).withTypeProvider<ZodTypeProvider>()
 
@@ -44,6 +45,7 @@ app.get('/health', async () => ({ status: 'ok' }))
 await app.register(listUsers)
 await app.register(listTasks)
 await app.register(getTask)
+await app.register(sendMessage)
 
 await app.listen({ port: 3333, host: '0.0.0.0' }).then(() => {
   console.info('--------------------------------------------------------')

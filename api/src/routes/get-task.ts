@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { tasks, users } from '@/db/schema'
+import { TaskSchema } from '@/types/task'
 
 export const getTask: FastifyPluginAsyncZod = async (app) => {
   app.get(
@@ -15,22 +16,7 @@ export const getTask: FastifyPluginAsyncZod = async (app) => {
         }),
         response: {
           200: z.object({
-            task: z.object({
-              id: z.string(),
-              authorId: z.string(),
-              title: z.string(),
-              description: z.string(),
-              steps: z.array(z.string()),
-              estimatedTime: z.string(),
-              implementationSuggestion: z.string(),
-              acceptanceCriteria: z.array(z.string()),
-              suggestedTests: z.array(z.string()),
-              content: z.string(),
-              chatHistory: z.array(z.unknown()),
-              createdAt: z.date(),
-              updatedAt: z.date(),
-              userName: z.string(),
-            }),
+            task: TaskSchema,
           }),
           400: z.object({
             error: z.string(),
@@ -48,6 +34,7 @@ export const getTask: FastifyPluginAsyncZod = async (app) => {
         .select({
           id: tasks.id,
           authorId: tasks.authorId,
+          chatId: tasks.chatId,
           title: tasks.title,
           description: tasks.description,
           steps: tasks.steps,

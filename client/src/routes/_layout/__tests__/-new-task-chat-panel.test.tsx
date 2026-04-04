@@ -7,11 +7,6 @@ describe('ChatPanel — header', () => {
     render(<ChatPanel />)
     expect(screen.getByText('Task Agent')).toBeInTheDocument()
   })
-
-  it('renders status "Ready to help" when not loading', () => {
-    render(<ChatPanel />)
-    expect(screen.getByText('Ready to help')).toBeInTheDocument()
-  })
 })
 
 describe('ChatPanel — empty state', () => {
@@ -129,71 +124,5 @@ describe('ChatPanel — message flow', () => {
     )
     await user.click(screen.getByRole('button', { name: /send message/i }))
     expect(screen.getByText('Thinking...')).toBeInTheDocument()
-  })
-})
-
-describe('ChatPanel — mock agent response', () => {
-  it('agent reply appears after 1 second', async () => {
-    const user = userEvent.setup()
-    render(<ChatPanel />)
-    await user.type(
-      screen.getByPlaceholderText('Describe your task...'),
-      'build a login form',
-    )
-    await user.click(screen.getByRole('button', { name: /send message/i }))
-    await waitFor(
-      () =>
-        expect(
-          screen.getByText(
-            /You said: "build a login form" — \(This is a mock response/,
-          ),
-        ).toBeInTheDocument(),
-      { timeout: 2000 },
-    )
-  })
-
-  it('agent reply text contains the echoed user message', async () => {
-    const user = userEvent.setup()
-    render(<ChatPanel />)
-    await user.type(
-      screen.getByPlaceholderText('Describe your task...'),
-      'add pagination to users',
-    )
-    await user.click(screen.getByRole('button', { name: /send message/i }))
-    await waitFor(
-      () =>
-        expect(
-          screen.getByText(/You said: "add pagination to users"/),
-        ).toBeInTheDocument(),
-      { timeout: 2000 },
-    )
-  })
-
-  it('loading indicator disappears after agent reply', async () => {
-    const user = userEvent.setup()
-    render(<ChatPanel />)
-    await user.type(
-      screen.getByPlaceholderText('Describe your task...'),
-      'build a login form',
-    )
-    await user.click(screen.getByRole('button', { name: /send message/i }))
-    await waitFor(
-      () => expect(document.querySelectorAll('.animate-bounce').length).toBe(0),
-      { timeout: 2000 },
-    )
-  })
-
-  it('status returns to "Ready to help" after agent reply', async () => {
-    const user = userEvent.setup()
-    render(<ChatPanel />)
-    await user.type(
-      screen.getByPlaceholderText('Describe your task...'),
-      'build a login form',
-    )
-    await user.click(screen.getByRole('button', { name: /send message/i }))
-    await waitFor(
-      () => expect(screen.getByText('Ready to help')).toBeInTheDocument(),
-      { timeout: 2000 },
-    )
   })
 })

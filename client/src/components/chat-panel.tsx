@@ -61,14 +61,28 @@ export function ChatPanel() {
     }
 
     setTimeout(() => {
-      const agentMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'agent',
-        text: `You said: "${trimmed}" — (This is a mock response — LLM not connected yet)`,
-      }
-      setMessages((prev) => [...prev, agentMessage])
-      setIsLoading(false)
-    }, 1000)
+      fetch(`${import.meta.env.VITE_API_URL}/send-message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: trimmed }),
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('Failed to send message')
+          return res.json()
+        })
+        .then((data) => {
+          const agentMessage: Message = {
+            id: data.data.id,
+            role: 'agent',
+            text: `${data.data.title}\n\n${data.data.description}`,
+          }
+          setMessages((prev) => [...prev, agentMessage])
+          setIsLoading(false)
+        })
+        .catch(() => {
+          setIsLoading(false)
+        })
+    }, 3000)
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {

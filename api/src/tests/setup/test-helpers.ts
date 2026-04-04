@@ -14,6 +14,7 @@ import { env } from '@/env'
 import { getTask } from '@/routes/get-task'
 import { listTasks } from '@/routes/list-tasks'
 import { listUsers } from '@/routes/list-users'
+import { sendMessage } from '@/routes/send-message'
 
 type AppHelper = {
   app: ReturnType<typeof fastify>
@@ -43,6 +44,7 @@ export async function buildApp(): Promise<AppHelper> {
   app.register(listUsers)
   app.register(listTasks)
   app.register(getTask)
+  app.register(sendMessage)
 
   await app.ready()
 
