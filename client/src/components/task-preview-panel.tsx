@@ -161,7 +161,7 @@ export function TaskPreviewPanel({
 
 function OverviewCard({ task }: { task: TaskPreview }) {
   return (
-    <Card>
+    <Card className="border">
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={TextIcon} size={16} strokeWidth={1.5} />
@@ -186,7 +186,7 @@ function OverviewCard({ task }: { task: TaskPreview }) {
 
 function StepsCard({ steps }: { steps: string[] }) {
   return (
-    <Card>
+    <Card className="border ">
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={PlayIcon} size={16} strokeWidth={1.5} />
@@ -206,7 +206,7 @@ function StepsCard({ steps }: { steps: string[] }) {
 
 function ImplementationCard({ suggestion }: { suggestion: string }) {
   return (
-    <Card>
+    <Card className="border">
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={Settings04Icon} size={16} strokeWidth={1.5} />
@@ -228,7 +228,7 @@ function TestingCard({
   suggestedTests: string[]
 }) {
   return (
-    <Card>
+    <Card className="border">
       <CardHeader className="border-b">
         <div className="flex items-center gap-2">
           <HugeiconsIcon icon={PlayIcon} size={16} strokeWidth={1.5} />

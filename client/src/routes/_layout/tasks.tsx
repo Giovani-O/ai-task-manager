@@ -265,12 +265,13 @@ function TaskDetailSheet({ taskId, onClose }: TaskDetailSheetProps) {
 
   return (
     <Sheet
+      modal={false}
       open={!!taskId}
       onOpenChange={(open) => {
         if (!open) onClose()
       }}
     >
-      <SheetContent className="w-full sm:max-w-lg overflow-y-auto p-0">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto p-0">
         <SheetTitle className="sr-only">Task Details</SheetTitle>
         {isError ? (
           <div className="flex h-full items-center justify-center p-6">
