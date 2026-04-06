@@ -3,6 +3,29 @@ import { generateText, Output } from 'ai'
 import { z } from 'zod'
 import { TaskSchema } from '@/types/task'
 
+const RATE_LIMIT = 5
+const RATE_WINDOW_MS = 60_000
+
+const requestTimestamps: number[] = []
+
+function checkRateLimit(): void {
+  const now = Date.now()
+  const windowStart = now - RATE_WINDOW_MS
+  const recentRequests = requestTimestamps.filter((ts) => ts > windowStart)
+
+  if (recentRequests.length >= RATE_LIMIT) {
+    const oldestInWindow = recentRequests[0]
+    const waitMs = oldestInWindow + RATE_WINDOW_MS - now
+    const waitSec = Math.ceil(waitMs / 1000)
+    throw new Error(
+      `Rate limit exceeded. Please wait ${waitSec} second(s) before trying again.`,
+    )
+  }
+
+  requestTimestamps.length = 0
+  requestTimestamps.push(...recentRequests, now)
+}
+
 const GenerateTaskResponseSchema = z.object({
   task: TaskSchema.omit({
     id: true,
@@ -23,6 +46,8 @@ export async function generateTask(
   userMessage: string,
   chatHistory: Message[] = [],
 ): Promise<GenerateTaskResponse> {
+  checkRateLimit()
+
   const model = google('gemini-2.5-flash')
 
   try {
