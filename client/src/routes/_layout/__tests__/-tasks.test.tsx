@@ -42,7 +42,6 @@ function makeTask(overrides: Partial<Task> & { id: string }): Task {
     title: overrides.title ?? `Task ${overrides.id}`,
     estimatedTime: overrides.estimatedTime ?? '4h',
     createdAt: overrides.createdAt ?? new Date(),
-    userName: overrides.userName ?? 'Test User',
     ...overrides,
   }
 }
@@ -74,9 +73,6 @@ describe('TasksPage — table', () => {
     expect(
       screen.getByRole('columnheader', { name: /creation date/i }),
     ).toBeInTheDocument()
-    expect(
-      screen.getByRole('columnheader', { name: /user/i }),
-    ).toBeInTheDocument()
   })
 
   it('displays task titles', async () => {
@@ -107,19 +103,6 @@ describe('TasksPage — table', () => {
     await waitFor(() =>
       expect(screen.getByText(expectedDate)).toBeInTheDocument(),
     )
-  })
-
-  it('renders user names', async () => {
-    const tasks = [
-      makeTask({ id: '1', userName: 'Alice Johnson' }),
-      makeTask({ id: '2', userName: 'Bob Smith' }),
-    ]
-    mockFetchResponse(tasks)
-    renderTasksPage()
-    await waitFor(() =>
-      expect(screen.getByText('Alice Johnson')).toBeInTheDocument(),
-    )
-    expect(screen.getByText('Bob Smith')).toBeInTheDocument()
   })
 
   it('renders 20 tasks on page 1', async () => {

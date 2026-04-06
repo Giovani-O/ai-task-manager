@@ -1,5 +1,6 @@
 import {
   Clock01Icon,
+  PencilEdit01Icon,
   PlayIcon,
   SaveIcon,
   Settings04Icon,
@@ -39,6 +40,7 @@ type TaskPreviewPanelProps = {
   isGenerating?: boolean
   onSave?: () => void
   isSaving?: boolean
+  mode?: 'save' | 'edit'
 }
 
 export function TaskPreviewPanel({
@@ -46,6 +48,7 @@ export function TaskPreviewPanel({
   isGenerating = false,
   onSave,
   isSaving = false,
+  mode = 'save',
 }: TaskPreviewPanelProps) {
   const { data: queryTask } = useCurrentTask()
   const task = propTask ?? queryTask ?? null
@@ -126,17 +129,31 @@ export function TaskPreviewPanel({
         </div>
       </ScrollArea>
 
-      {/* Save Button Panel */}
+      {/* Action Button Panel */}
       <div className="border-t p-4">
-        <Button
-          className="h-[49px] w-full rounded-xl text-base cursor-pointer"
-          size="default"
-          disabled={isGenerating || isSaving}
-          onClick={onSave}
-        >
-          <HugeiconsIcon icon={SaveIcon} size={20} strokeWidth={1.5} />
-          <span className="ml-2">{isSaving ? 'Saving...' : 'Save Task'}</span>
-        </Button>
+        {mode === 'edit' ? (
+          <Button
+            className="h-[49px] w-full rounded-xl text-base cursor-pointer"
+            size="default"
+          >
+            <HugeiconsIcon
+              icon={PencilEdit01Icon}
+              size={20}
+              strokeWidth={1.5}
+            />
+            <span className="ml-2">Edit Task</span>
+          </Button>
+        ) : (
+          <Button
+            className="h-[49px] w-full rounded-xl text-base cursor-pointer"
+            size="default"
+            disabled={isGenerating || isSaving}
+            onClick={onSave}
+          >
+            <HugeiconsIcon icon={SaveIcon} size={20} strokeWidth={1.5} />
+            <span className="ml-2">{isSaving ? 'Saving...' : 'Save Task'}</span>
+          </Button>
+        )}
       </div>
     </div>
   )
