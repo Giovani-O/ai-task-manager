@@ -38,10 +38,8 @@ describe('GET /tasks/:id', () => {
 
   it('returns the task with all expected fields', async () => {
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
-    const authorId = uuidv7()
     const task = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId,
       chatId: chat.id,
       title: 'My Task',
       description: 'Detailed description',
@@ -50,8 +48,6 @@ describe('GET /tasks/:id', () => {
       implementationSuggestion: 'Use composition',
       acceptanceCriteria: ['Works correctly'],
       suggestedTests: ['Unit test it'],
-      content: 'Full content here',
-      chatHistory: [{ role: 'user', content: 'hello' }],
     })
 
     const res = await helper.app.inject({
@@ -63,7 +59,6 @@ describe('GET /tasks/:id', () => {
     expect(res.statusCode).toBe(200)
     expect(body.task).toMatchObject({
       id: task.id,
-      authorId,
       title: 'My Task',
       description: 'Detailed description',
       steps: ['Step 1', 'Step 2'],
@@ -71,8 +66,6 @@ describe('GET /tasks/:id', () => {
       implementationSuggestion: 'Use composition',
       acceptanceCriteria: ['Works correctly'],
       suggestedTests: ['Unit test it'],
-      content: 'Full content here',
-      chatHistory: [{ role: 'user', content: 'hello' }],
     })
   })
 
@@ -80,7 +73,6 @@ describe('GET /tasks/:id', () => {
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     const task = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: uuidv7(),
       chatId: chat.id,
     })
 
@@ -97,16 +89,13 @@ describe('GET /tasks/:id', () => {
 
   it('returns the correct task when multiple tasks exist', async () => {
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
-    const authorId = uuidv7()
     const task1 = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId,
       chatId: chat.id,
       title: 'First Task',
     })
     const task2 = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId,
       chatId: chat.id,
       title: 'Second Task',
     })

@@ -79,7 +79,6 @@ export async function insertChat(
 export async function insertTask(
   db: NodePgDatabase<typeof schema>,
   overrides: Partial<typeof tasks.$inferInsert> & {
-    authorId: string
     chatId: string
   },
 ) {
@@ -92,8 +91,6 @@ export async function insertTask(
     implementationSuggestion: 'Use TDD',
     acceptanceCriteria: ['It works'],
     suggestedTests: ['Test it'],
-    content: 'Task content',
-    chatHistory: [],
   }
 
   const result = await db

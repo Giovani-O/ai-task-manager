@@ -11,6 +11,7 @@ import {
 } from 'fastify-type-provider-zod'
 import { chatsRouter } from '@/routes/chats'
 import { db } from './db'
+import { createTask } from './routes/create-task'
 import { getTask } from './routes/get-task'
 import { listTasks } from './routes/list-tasks'
 
@@ -43,6 +44,7 @@ app.get('/health', async () => ({ status: 'ok' }))
 
 await app.register(listTasks)
 await app.register(getTask)
+await app.register(createTask)
 await app.register(chatsRouter)
 
 await app.listen({ port: 3333, host: '0.0.0.0' }).then(() => {

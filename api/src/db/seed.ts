@@ -64,37 +64,6 @@ function generateTests(): string[] {
   )
 }
 
-function generateContent(task: {
-  title: string
-  description: string
-  steps: string[]
-  estimatedTime: string
-  implementationSuggestion: string
-  acceptanceCriteria: string[]
-  suggestedTests: string[]
-}): string {
-  return `# ${task.title}
-
-## Description
-${task.description}
-
-## Steps
-${task.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
-
-## Estimated Time
-${task.estimatedTime}
-
-## Implementation Suggestion
-${task.implementationSuggestion}
-
-## Acceptance Criteria
-${task.acceptanceCriteria.map((c, i) => `${i + 1}. ${c}`).join('\n')}
-
-## Suggested Tests
-${task.suggestedTests.map((t) => `- ${t}`).join('\n')}
-`
-}
-
 async function seed() {
   await client.connect()
 
@@ -111,23 +80,20 @@ async function seed() {
 
   console.log('Creating tasks table...')
   await client.query(`
-	CREATE TABLE IF NOT EXISTS tasks (
-		id TEXT PRIMARY KEY,
-		author_id TEXT NOT NULL,
-		chat_id TEXT NOT NULL REFERENCES chats(id),
-		title TEXT NOT NULL,
-		description TEXT NOT NULL,
-		steps JSONB NOT NULL,
-		estimated_time TEXT NOT NULL,
-		implementation_suggestion TEXT NOT NULL,
-		acceptance_criteria JSONB NOT NULL,
-		suggested_tests JSONB NOT NULL,
-		content TEXT NOT NULL,
-		chat_history JSONB NOT NULL,
-		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-		updated_at TIMESTAMP NOT NULL DEFAULT NOW()
-	)
-	`)
+  CREATE TABLE IF NOT EXISTS tasks (
+    id TEXT PRIMARY KEY,
+    chat_id TEXT NOT NULL REFERENCES chats(id),
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    steps JSONB NOT NULL,
+    estimated_time TEXT NOT NULL,
+    implementation_suggestion TEXT NOT NULL,
+    acceptance_criteria JSONB NOT NULL,
+    suggested_tests JSONB NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+  )
+`)
 
   console.log('Truncating tables...')
   await client.query('TRUNCATE TABLE chats RESTART IDENTITY CASCADE')
@@ -152,7 +118,6 @@ async function seed() {
   console.log('Seeding 5 tasks...')
   for (let i = 0; i < 5; i++) {
     const id = uuidv7()
-    const authorId = uuidv7()
     const chatId = chatIds[i % chatIds.length]
     const title = faker.helpers.arrayElement(TASK_TITLES)
     const description = faker.hacker.phrase()
@@ -163,23 +128,12 @@ async function seed() {
     const implementationSuggestion = `Use ${tech1} for the frontend and ${tech2} for backend integration.`
     const acceptanceCriteria = generateAcceptanceCriteria()
     const suggestedTests = generateTests()
-    const content = generateContent({
-      title,
-      description,
-      steps,
-      estimatedTime,
-      implementationSuggestion,
-      acceptanceCriteria,
-      suggestedTests,
-    })
-    const chatHistory: unknown[] = []
 
     await client.query(
-      `INSERT INTO tasks (id, author_id, chat_id, title, description, steps, estimated_time, implementation_suggestion, acceptance_criteria, suggested_tests, content, chat_history, created_at, updated_at)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
+      `INSERT INTO tasks (id, chat_id, title, description, steps, estimated_time, implementation_suggestion, acceptance_criteria, suggested_tests, created_at, updated_at)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         id,
-        authorId,
         chatId,
         title,
         description,
@@ -188,8 +142,6 @@ async function seed() {
         implementationSuggestion,
         JSON.stringify(acceptanceCriteria),
         JSON.stringify(suggestedTests),
-        content,
-        JSON.stringify(chatHistory),
         new Date(),
         new Date(),
       ],

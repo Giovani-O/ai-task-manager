@@ -126,10 +126,7 @@ export const chatsRouter: FastifyPluginAsyncZod = async (app) => {
       const fullTask: Task.Task = {
         ...generatedTask,
         id: '',
-        authorId: '',
         chatId,
-        content: '',
-        chatHistory: [],
         createdAt: now,
         updatedAt: now,
       }

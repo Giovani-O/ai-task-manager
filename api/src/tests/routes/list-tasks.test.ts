@@ -33,19 +33,16 @@ describe('GET /tasks', () => {
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     const a = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: uuidv7(),
       chatId: chat.id,
       title: 'Task A',
     })
     const b = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: uuidv7(),
       chatId: chat.id,
       title: 'Task B',
     })
     const c = await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: uuidv7(),
       chatId: chat.id,
       title: 'Task C',
     })
@@ -62,7 +59,6 @@ describe('GET /tasks', () => {
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: uuidv7(),
       chatId: chat.id,
       title: 'Field Test',
       estimatedTime: '3h',
@@ -89,7 +85,6 @@ describe('GET /tasks', () => {
     for (let i = 0; i < 5; i++) {
       await insertTask(helper.testDb, {
         id: uuidv7(),
-        authorId: uuidv7(),
         chatId: chat.id,
         title: `Task ${i}`,
       })
@@ -110,7 +105,6 @@ describe('GET /tasks', () => {
     for (let i = 0; i < 5; i++) {
       await insertTask(helper.testDb, {
         id: uuidv7(),
-        authorId: uuidv7(),
         chatId: chat.id,
         title: `Task ${i}`,
       })
@@ -139,7 +133,6 @@ describe('GET /tasks', () => {
     const chat = await insertChat(helper.testDb, { id: uuidv7() })
     await insertTask(helper.testDb, {
       id: uuidv7(),
-      authorId: uuidv7(),
       chatId: chat.id,
     })
 

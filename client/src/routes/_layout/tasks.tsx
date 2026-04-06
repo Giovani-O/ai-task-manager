@@ -25,7 +25,6 @@ export type Task = {
   title: string
   estimatedTime: string
   createdAt: Date
-  userName: string
 }
 
 type SortColumn = 'title' | 'estimatedTime' | 'createdAt'
@@ -135,9 +134,6 @@ export function TasksPage() {
                     <SortIcon column="createdAt" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer hover:bg-muted/50">
-                  <div className="flex items-center">User</div>
-                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -159,7 +155,6 @@ export function TasksPage() {
                     <TableCell>{task.title}</TableCell>
                     <TableCell>{task.estimatedTime}</TableCell>
                     <TableCell>{formatDateTime(task.createdAt)}</TableCell>
-                    <TableCell>{task.userName}</TableCell>
                   </TableRow>
                 ))
               )}

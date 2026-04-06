@@ -11,7 +11,6 @@ import { CURRENT_TASK_KEY } from './task-preview-panel'
 
 export type GeneratedTask = {
   id: string
-  authorId: string
   chatId: string
   title: string
   description: string
@@ -20,8 +19,6 @@ export type GeneratedTask = {
   implementationSuggestion: string
   acceptanceCriteria: string[]
   suggestedTests: string[]
-  content: string
-  chatHistory: unknown[]
   createdAt: string
   updatedAt: string
 }
@@ -46,9 +43,13 @@ type Message = {
 
 type ChatPanelProps = {
   onGeneratingChange?: (isGenerating: boolean) => void
+  onChatCreated?: (chatId: string) => void
 }
 
-export function ChatPanel({ onGeneratingChange }: ChatPanelProps) {
+export function ChatPanel({
+  onGeneratingChange,
+  onChatCreated,
+}: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [chatId, setChatId] = useState<string | null>(null)
@@ -56,6 +57,7 @@ export function ChatPanel({ onGeneratingChange }: ChatPanelProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const queryClient = useQueryClient()
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs once on mount only
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/chats`, {
       method: 'POST',
@@ -63,7 +65,10 @@ export function ChatPanel({ onGeneratingChange }: ChatPanelProps) {
       body: JSON.stringify({}),
     })
       .then((res) => res.json())
-      .then((data: { chatId: string }) => setChatId(data.chatId))
+      .then((data: { chatId: string }) => {
+        setChatId(data.chatId)
+        onChatCreated?.(data.chatId)
+      })
       .catch(() => {
         // chat creation failed — messages will fail gracefully
       })

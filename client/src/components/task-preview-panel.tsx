@@ -20,7 +20,6 @@ export type TaskPreview = {
   implementationSuggestion: string
   acceptanceCriteria: string[]
   suggestedTests: string[]
-  content: string
 }
 
 const CURRENT_TASK_KEY = ['currentTask'] as const
@@ -35,14 +34,18 @@ export function useCurrentTask() {
 
 export { CURRENT_TASK_KEY }
 
-interface TaskPreviewPanelProps {
+type TaskPreviewPanelProps = {
   task?: TaskPreview
   isGenerating?: boolean
+  onSave?: () => void
+  isSaving?: boolean
 }
 
 export function TaskPreviewPanel({
   task: propTask,
   isGenerating = false,
+  onSave,
+  isSaving = false,
 }: TaskPreviewPanelProps) {
   const { data: queryTask } = useCurrentTask()
   const task = propTask ?? queryTask ?? null
@@ -128,10 +131,11 @@ export function TaskPreviewPanel({
         <Button
           className="h-[49px] w-full rounded-xl text-base cursor-pointer"
           size="default"
-          disabled={isGenerating}
+          disabled={isGenerating || isSaving}
+          onClick={onSave}
         >
           <HugeiconsIcon icon={SaveIcon} size={20} strokeWidth={1.5} />
-          <span className="ml-2">Save Task</span>
+          <span className="ml-2">{isSaving ? 'Saving...' : 'Save Task'}</span>
         </Button>
       </div>
     </div>

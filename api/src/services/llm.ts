@@ -6,12 +6,9 @@ import { TaskSchema } from '@/types/task'
 const GenerateTaskResponseSchema = z.object({
   task: TaskSchema.omit({
     id: true,
-    authorId: true,
     chatId: true,
     createdAt: true,
     updatedAt: true,
-    chatHistory: true,
-    content: true,
   }),
   reply: z.string(),
 })

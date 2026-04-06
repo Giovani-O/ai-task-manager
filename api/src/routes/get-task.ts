@@ -34,7 +34,6 @@ export const getTask: FastifyPluginAsyncZod = async (app) => {
       const result = await app.db
         .select({
           id: tasks.id,
-          authorId: tasks.authorId,
           chatId: tasks.chatId,
           title: tasks.title,
           description: tasks.description,
@@ -43,8 +42,6 @@ export const getTask: FastifyPluginAsyncZod = async (app) => {
           implementationSuggestion: tasks.implementationSuggestion,
           acceptanceCriteria: tasks.acceptanceCriteria,
           suggestedTests: tasks.suggestedTests,
-          content: tasks.content,
-          chatHistory: tasks.chatHistory,
           createdAt: tasks.createdAt,
           updatedAt: tasks.updatedAt,
         })
