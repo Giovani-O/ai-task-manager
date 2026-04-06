@@ -18,8 +18,13 @@ const GenerateTaskResponseSchema = z.object({
 
 export type GenerateTaskResponse = z.infer<typeof GenerateTaskResponseSchema>
 
+type Message =
+  | { role: 'user'; content: string }
+  | { role: 'assistant'; content: string }
+
 export async function generateTask(
   userMessage: string,
+  chatHistory: Message[] = [],
 ): Promise<GenerateTaskResponse> {
   const model = google('gemini-2.5-flash')
 
@@ -31,7 +36,10 @@ export async function generateTask(
       }),
       system:
         'You are a Senior Project Manager. Given a user request, break it down into a structured task with title, description, steps, estimated time, implementation suggestions, acceptance criteria, and suggested tests. Also provide a friendly reply message explaining what you did.',
-      prompt: userMessage,
+      messages: [
+        ...chatHistory.map((msg) => ({ role: msg.role, content: msg.content })),
+        { role: 'user', content: userMessage },
+      ],
     })
 
     return output

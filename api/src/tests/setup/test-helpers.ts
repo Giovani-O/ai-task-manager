@@ -11,9 +11,9 @@ import { uuidv7 } from 'uuidv7'
 import * as schema from '@/db/schema'
 import { chat, tasks } from '@/db/schema'
 import { env } from '@/env'
+import { chatsRouter } from '@/routes/chats'
 import { getTask } from '@/routes/get-task'
 import { listTasks } from '@/routes/list-tasks'
-import { sendMessage } from '@/routes/send-message'
 
 type AppHelper = {
   app: ReturnType<typeof fastify>
@@ -42,7 +42,7 @@ export async function buildApp(): Promise<AppHelper> {
 
   app.register(listTasks)
   app.register(getTask)
-  await app.register(sendMessage)
+  await app.register(chatsRouter)
 
   await app.ready()
 

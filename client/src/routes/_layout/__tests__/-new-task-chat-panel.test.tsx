@@ -19,6 +19,27 @@ function renderWithQuery(ui: ReactNode, queryClient = makeQueryClient()) {
   )
 }
 
+beforeEach(() => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string) => {
+      // Chat creation — resolves immediately
+      if (url.endsWith('/chats')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ chatId: 'test-chat-id' }),
+        })
+      }
+      // Message send — stays pending so we can test loading state
+      return new Promise(() => {})
+    }),
+  )
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
 describe('ChatPanel — header', () => {
   it('renders the title "Task Agent"', () => {
     renderWithQuery(<ChatPanel />)

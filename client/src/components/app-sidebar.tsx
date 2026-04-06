@@ -1,8 +1,4 @@
-import {
-  CommandIcon,
-  DashboardSquare01Icon,
-  TaskDone02Icon,
-} from '@hugeicons/core-free-icons'
+import { CommandIcon, TaskDone02Icon } from '@hugeicons/core-free-icons'
 import { HugeiconsIcon } from '@hugeicons/react'
 import type * as React from 'react'
 import { NavMain } from '@/components/nav-main'
@@ -22,12 +18,6 @@ const data = {
     avatar: '/avatars/shadcn.jpg',
   },
   navMain: [
-    {
-      title: 'Dashboard',
-      url: '/',
-      icon: <HugeiconsIcon icon={DashboardSquare01Icon} strokeWidth={2} />,
-    },
-
     {
       title: 'Tasks',
       url: '/tasks',

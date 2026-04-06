@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm'
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { tasks } from '@/db/schema'
+import type * as Task from '@/types/task'
 import { TaskSchema } from '@/types/task'
 
 export const getTask: FastifyPluginAsyncZod = async (app) => {
@@ -55,7 +56,7 @@ export const getTask: FastifyPluginAsyncZod = async (app) => {
         return reply.status(404).send({ error: 'Task not found' })
       }
 
-      return reply.status(200).send({ task: result[0] })
+      return reply.status(200).send({ task: result[0] as Task.Task })
     },
   )
 }

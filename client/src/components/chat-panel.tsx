@@ -26,6 +26,16 @@ export type GeneratedTask = {
   updatedAt: string
 }
 
+type TaskInitialData = {
+  title: string
+  description: string
+  steps: string[]
+  estimatedTime: string
+  implementationSuggestion: string
+  acceptanceCriteria: string[]
+  suggestedTests: string[]
+}
+
 type MessageRole = 'user' | 'agent'
 
 type Message = {
@@ -41,41 +51,63 @@ type ChatPanelProps = {
 export function ChatPanel({ onGeneratingChange }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
+  const [chatId, setChatId] = useState<string | null>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const queryClient = useQueryClient()
 
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/chats`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+      .then((res) => res.json())
+      .then((data: { chatId: string }) => setChatId(data.chatId))
+      .catch(() => {
+        // chat creation failed — messages will fail gracefully
+      })
+  }, [])
+
   const mutation = useMutation({
     mutationKey: ['send-message'],
     mutationFn: async (message: string) => {
+      if (!chatId) throw new Error('Chat session not ready')
+      const currentTask =
+        queryClient.getQueryData<GeneratedTask>(CURRENT_TASK_KEY)
+      const taskBody: TaskInitialData | undefined = currentTask
+        ? {
+            title: currentTask.title,
+            description: currentTask.description,
+            steps: currentTask.steps,
+            estimatedTime: currentTask.estimatedTime,
+            implementationSuggestion: currentTask.implementationSuggestion,
+            acceptanceCriteria: currentTask.acceptanceCriteria,
+            suggestedTests: currentTask.suggestedTests,
+          }
+        : undefined
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/send-message`,
+        `${import.meta.env.VITE_API_URL}/chats/${chatId}/messages`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({ message, task: taskBody }),
         },
       )
       if (!response.ok) throw new Error('Failed to send message')
-      const data = await response.json()
-      return data as {
-        data: {
-          task: GeneratedTask
-          reply: string
-        }
-      }
+      return response.json() as Promise<{ task: GeneratedTask; reply: string }>
     },
     onMutate: () => {
       onGeneratingChange?.(true)
     },
     onSuccess: (data) => {
       const agentMessage: Message = {
-        id: data.data.task.id,
+        id: crypto.randomUUID(),
         role: 'agent',
-        text: data.data.reply,
+        text: data.reply,
       }
       setMessages((prev) => [...prev, agentMessage])
-      queryClient.setQueryData(CURRENT_TASK_KEY, data.data.task)
+      queryClient.setQueryData(CURRENT_TASK_KEY, data.task)
       onGeneratingChange?.(false)
     },
     onError: () => {
